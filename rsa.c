@@ -1,18 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <gmp.h>
-#include <math.h>
 #include <string.h>
 #include <time.h>
 
-#define PRIME_ITERS 50 // prime prob test iterations 
+#define STR_BASE 16
 
 char filepath_input[100] = "files/input_file.txt";
 
-int read_file(char* filepath, char** message) {
+char nibbleToChar(unsigned char nibble) {
+    if (nibble < 10) {
+        return '0' + nibble; // Convert 0-9 to '0'-'9'
+    } else {
+        return 'a' + (nibble - 10); // Convert 10-15 to 'a'-'f'
+    }
+}
+
+int read_file_hex(char* filepath, char** message) {
     FILE *fptr;
     long fileSize;
-    fptr = fopen(filepath, "r");
+    fptr = fopen(filepath, "rb");
 
     if (fptr == NULL) {
         printf("fptr error\n");
@@ -22,17 +29,58 @@ int read_file(char* filepath, char** message) {
     fileSize = ftell(fptr); // get file size
     fseek(fptr, 0, SEEK_SET); // reset cursor to start
 
-    *message = (char *)malloc(fileSize + 1);
-    if (message == NULL) {
+    *message = (char *)malloc(2 * fileSize + 1); // each byte has 2 hex chars
+    if(message == NULL) {
         printf("message malloc error\n");
         fclose(fptr);
         return 1;
     }
-    fread(*message, 1, fileSize, fptr);
-    (*message)[fileSize] = '\0'; // Null-terminate the string
+    char* buffer = malloc(fileSize * sizeof(unsigned char));
+    if (buffer == NULL) { // Check if memory allocation was successful
+        perror("buffer malloc error\n");
+        free(message);
+        fclose(fptr);
+        return 1;
+    }
+
+    // Read the file into the buffer
+    fread(buffer, 1, fileSize, fptr);
+    
+    // seperate byte to 2 nibbles for each char
+    int count = 0;
+    for (long i = 0; i < fileSize; i++) {
+        (*message)[count++] = nibbleToChar(buffer[i] >> 4); //XXXX---- -> XXXX0000
+        (*message)[count++] = nibbleToChar(buffer[i] & 0x0F); //----XXXX -> XXXX0000
+    }
+    (*message)[2*fileSize] = '\0'; // Null-terminate the string
+    printf("%s", *message);
     fclose(fptr);
+    free(buffer);
 
     return 0;
+}
+
+char* hex_stream_to_ascii(char *hexString) {
+    long hexLength = strlen(hexString); // Get the length of the hex string
+
+    // Each pair of hex digits corresponds to one ASCII character
+    long asciiLength = hexLength / 2;
+    char *asciiString = malloc(asciiLength + 1); // +1 for null terminator
+    if (asciiString == NULL) {
+        printf("ascii string malloc error");
+        return NULL;
+    }
+
+    for (long i = 0; i < asciiLength; i++) {
+        unsigned int byteValue;
+        // use sscanf because it provides hexadecimal integer support (painful)
+        // gets first 2 chars at pointer and stores them in byteValue 
+        sscanf(&hexString[i*2], "%2x", &byteValue); 
+        asciiString[i] = (char)byteValue;
+    }
+    asciiString[asciiLength] = '\0';
+
+    return asciiString;
 }
 
 void generate_random_prime(mpz_t prime, unsigned long int bit_length, gmp_randstate_t state) {
@@ -124,13 +172,15 @@ void generateRSAKeyPair(mpz_t n, mpz_t e, mpz_t d, unsigned long int key_length)
     mpz_clear(lambda);
     mpz_clear(gcd);
 }
+
 void encrypt(mpz_t encrypted, char** message, mpz_t e, mpz_t n) {
     // init mpz_message (needed to use mpz_powm)
     mpz_t mpz_message;
     mpz_init(mpz_message);
 
     // convert string to mpz
-    mpz_set_str(mpz_message, *message, 10);
+    // string_to_mpz(mpz_message, *message);
+    mpz_set_str(mpz_message, *message, STR_BASE);
 
     // encryption process
     mpz_powm(encrypted, mpz_message, e, n);
@@ -154,7 +204,7 @@ int main() {
     printf("n: %s\n\ne: %s\n\nd: %s\n\n", mpz_get_str(NULL, 0, n), mpz_get_str(NULL, 0, e), mpz_get_str(NULL, 0, d));
 
     char *message = NULL;
-    if (read_file(filepath_input, &message) != 0) {
+    if (read_file_hex(filepath_input, &message) != 0) {
         return -1;
     }
     printf("Original message:\n%s\n\n", message);
@@ -166,8 +216,12 @@ int main() {
     decrypt(decrypted, encrypted, d, n);
 
     // The decrypted message must be equal to the original
-    printf("Encrypted: %s\n\n", mpz_get_str(NULL, 0, encrypted));
-    printf("Decrypted:\n%s\n\n", mpz_get_str(NULL, 0, decrypted));
+    printf("Encrypted: %s\n\n", mpz_get_str(NULL, STR_BASE, encrypted));
+    printf("Decrypted:\n%s\n\n", mpz_get_str(NULL, STR_BASE, decrypted));
+
+    char* decrypted_msg;
+    decrypted_msg = hex_stream_to_ascii(mpz_get_str(NULL, STR_BASE, decrypted));
+    printf("Decrypted2:\n%s\n\n", decrypted_msg);
 
     // clear vars
     free(message);
