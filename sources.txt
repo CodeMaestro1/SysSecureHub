@@ -1,0 +1,31 @@
+<ECDH>
+
+keypair:
+https://doc.libsodium.org/public-key_cryptography/sealed_boxes
+
+crypto_key_pair:
+https://doc.libsodium.org/public-key_cryptography/authenticated_encryption#key-pair-generation
+
+scalar mult (based on G or random point):
+https://doc.libsodium.org/advanced/scalar_multiplication
+
+compare nums:
+https://doc.libsodium.org/internals#branches
+
+<RSA>
+
+rsa implementation:
+https://gist.github.com/akosma/865b887f993de462369a04f4e81596b8
+https://gist.github.com/aishraj/4010562
+
+generate random prime of given length:
+rand, check prime approach
+https://stackoverflow.com/questions/56412315/c-generate-a-random-prime-using-gmp-library
+rand, next prime, check length approach
+https://crypto.stackexchange.com/questions/2532/generating-random-primes
+
+mpz_probab_prime_p:
+https://gmplib.org/manual/Number-Theoretic-Functions
+
+public key is usually 65537?:
+https://www.reddit.com/r/crypto/comments/6363di/how_do_computers_choose_the_rsa_value_for_e/

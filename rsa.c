@@ -1,11 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <gmp.h>
-#include <math.h>
 #include <string.h>
 #include <time.h>
 
-#define PRIME_ITERS 50 // prime prob test iterations 
+#define STR_BASE 16
 
 char filepath_input[100] = "files/input_file.txt";
 
@@ -124,13 +123,40 @@ void generateRSAKeyPair(mpz_t n, mpz_t e, mpz_t d, unsigned long int key_length)
     mpz_clear(lambda);
     mpz_clear(gcd);
 }
+
+void string_to_mpz(mpz_t result, const char *str) {
+    char hex_str[1024] = {0};
+    // Convert the string to hexadecimal representation
+    for (int i = 0; i < strlen(str); i++) {
+        sprintf(hex_str + i * 2, "%02x", (unsigned char)str[i]);
+    }
+    // Set the mpz_t from the hex string
+    mpz_set_str(result, hex_str, 16);
+}
+
+void mpz_to_string(char *result, mpz_t mpz_val) {
+    char *hex_str = mpz_get_str(NULL, 16, mpz_val);
+    size_t hex_len = strlen(hex_str);
+    
+    // Convert the hex string back to ASCII characters
+    for (size_t i = 0; i < hex_len; i += 2) {
+        unsigned int byte;
+        sscanf(hex_str + i, "%02x", &byte);
+        result[i / 2] = (char)byte;
+    }
+    result[hex_len / 2] = '\0';
+
+    free(hex_str);
+}
+
 void encrypt(mpz_t encrypted, char** message, mpz_t e, mpz_t n) {
     // init mpz_message (needed to use mpz_powm)
     mpz_t mpz_message;
     mpz_init(mpz_message);
 
     // convert string to mpz
-    mpz_set_str(mpz_message, *message, 10);
+    string_to_mpz(mpz_message, *message);
+    // mpz_set_str(mpz_message, *message, STR_BASE);
 
     // encryption process
     mpz_powm(encrypted, mpz_message, e, n);
@@ -166,8 +192,12 @@ int main() {
     decrypt(decrypted, encrypted, d, n);
 
     // The decrypted message must be equal to the original
-    printf("Encrypted: %s\n\n", mpz_get_str(NULL, 0, encrypted));
-    printf("Decrypted:\n%s\n\n", mpz_get_str(NULL, 0, decrypted));
+    printf("Encrypted: %s\n\n", mpz_get_str(NULL, STR_BASE, encrypted));
+    printf("Decrypted:\n%s\n\n", mpz_get_str(NULL, STR_BASE, decrypted));
+
+    char decrypted_msg[1024];
+    mpz_to_string(decrypted_msg, decrypted);
+    printf("Decrypted2:\n%s\n\n", decrypted_msg);
 
     // clear vars
     free(message);
