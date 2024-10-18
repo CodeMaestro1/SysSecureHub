@@ -16,7 +16,7 @@ char nibbleToChar(unsigned char nibble) {
     }
 }
 
-int read_file_hex(char* filepath, char** message) {
+int read_file_hex(char* filepath, char** message, unsigned long int key_length, long cur_cursor) {
     FILE *fptr;
     long fileSize;
     fptr = fopen(filepath, "rb");
@@ -27,20 +27,30 @@ int read_file_hex(char* filepath, char** message) {
     }
     fseek(fptr, 0, SEEK_END);
     fileSize = ftell(fptr); // get file size
-    fseek(fptr, 0, SEEK_SET); // reset cursor to start
+    fseek(fptr, cur_cursor, SEEK_SET); // reset cursor to start
+
+    long  new_cursor;
+    long remaining_len = fileSize - cur_cursor;
+    if (remaining_len > (key_length/8)-1) {
+        fileSize = (key_length/8)-1;
+        new_cursor = cur_cursor + fileSize;
+    } else {
+        fileSize = remaining_len;
+        new_cursor = -2; // eof
+    }
 
     *message = (char *)malloc(2 * fileSize + 1); // each byte has 2 hex chars
     if(message == NULL) {
         printf("message malloc error\n");
         fclose(fptr);
-        return 1;
+        return -1;
     }
     char* buffer = malloc(fileSize * sizeof(unsigned char));
     if (buffer == NULL) { // Check if memory allocation was successful
-        perror("buffer malloc error\n");
+        printf("buffer malloc error\n");
         free(message);
         fclose(fptr);
-        return 1;
+        return -1;
     }
 
     // Read the file into the buffer
@@ -53,11 +63,10 @@ int read_file_hex(char* filepath, char** message) {
         (*message)[count++] = nibbleToChar(buffer[i] & 0x0F); //----XXXX -> XXXX0000
     }
     (*message)[2*fileSize] = '\0'; // Null-terminate the string
-    printf("%s", *message);
     fclose(fptr);
     free(buffer);
 
-    return 0;
+    return new_cursor;
 }
 
 char* hex_stream_to_ascii(char *hexString) {
@@ -203,30 +212,76 @@ int main() {
     generateRSAKeyPair(n, e, d, key_length);
     printf("n: %s\n\ne: %s\n\nd: %s\n\n", mpz_get_str(NULL, 0, n), mpz_get_str(NULL, 0, e), mpz_get_str(NULL, 0, d));
 
+    /* init vars */
+    // message vars (in between)
     char *message = NULL;
-    if (read_file_hex(filepath_input, &message) != 0) {
+    char *full_message = NULL;
+    mpz_t encrypted, decrypted;
+    char* decrypted_msg;
+
+    // cursor
+    long cur_cursor = 0;
+
+    // full_message len
+    long total_length = 0;
+
+    // init full_message
+    full_message = malloc(1);
+    if (full_message == NULL) {
+        printf("full_message malloc error");
         return -1;
     }
-    printf("Original message:\n%s\n\n", message);
+    full_message[0] = '\0';
 
-    // init vars
-    mpz_t encrypted, decrypted;
-    mpz_inits(encrypted, decrypted, NULL);
-    encrypt(encrypted, &message, e, n);
-    decrypt(decrypted, encrypted, d, n);
+    // loop to encrypt/decrypt file every ~key_length bits
+    while (cur_cursor != -2) {
+        mpz_inits(encrypted, decrypted, NULL);
 
-    // The decrypted message must be equal to the original
-    printf("Encrypted: %s\n\n", mpz_get_str(NULL, STR_BASE, encrypted));
-    printf("Decrypted:\n%s\n\n", mpz_get_str(NULL, STR_BASE, decrypted));
+        cur_cursor = read_file_hex(filepath_input, &message, key_length, cur_cursor);
+        printf("Original message:\n%s\n\n", message);
 
-    char* decrypted_msg;
-    decrypted_msg = hex_stream_to_ascii(mpz_get_str(NULL, STR_BASE, decrypted));
-    printf("Decrypted2:\n%s\n\n", decrypted_msg);
+        // malloc error when reading file
+        if (cur_cursor == -1) {
+            return -1;
+        }
+
+        /* RSA Process */
+        encrypt(encrypted, &message, e, n);
+
+        decrypt(decrypted, encrypted, d, n);
+
+        printf("Encrypted: %s\n\n", mpz_get_str(NULL, STR_BASE, encrypted));
+        printf("Decrypted:\n%s\n\n", mpz_get_str(NULL, STR_BASE, decrypted));
+
+        decrypted_msg = hex_stream_to_ascii(mpz_get_str(NULL, STR_BASE, decrypted));
+
+        printf("Decrypted2:\n%s\n\n", decrypted_msg);
+
+        total_length += strlen(decrypted_msg); // incr total_len
+        full_message = realloc(full_message, total_length + 1); // realloc full_message
+        if (full_message == NULL) {
+            perror("full_message realloc error");
+            free(decrypted_msg);
+            return 1;
+        }
+
+        // Concatenate decrypted_msg to full_message
+        strcat(full_message, decrypted_msg);
+
+        // clear vars
+        mpz_clear(encrypted);
+        mpz_clear(decrypted);
+        free(message);
+        free(decrypted_msg);
+        
+        printf("--------------------------------------------\n");
+    }
+        
+    printf("Full message:\n%s\n\n", full_message);
 
     // clear vars
-    free(message);
-    mpz_clear(encrypted);
-    mpz_clear(decrypted);
+    free(full_message);
+    
 
     // prime check
     // mpz_t p;
