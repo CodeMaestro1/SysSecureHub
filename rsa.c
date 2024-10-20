@@ -499,7 +499,7 @@ int analyze_args(int argc, char *argv[], char** input_path, char** output_path, 
                 print_help();
                 return 0;
             default:
-                print_help();
+                print("Invalid option\n");
                 return 1;
         }
     }
