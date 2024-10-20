@@ -3,6 +3,7 @@
 #include <gmp.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 #define STR_BASE 16
 #define PADDING_CHAR '1'
@@ -265,7 +266,16 @@ void save_keys(mpz_t n, mpz_t e, mpz_t d, unsigned long int key_length) {
     fclose(private_file);
 }
 
-void get_key(char* key_filepath, mpz_t n, mpz_t key) {
+void get_key(char* key_filepath, mpz_t n, mpz_t key, long unsigned int* key_length) {
+    // get length 
+    if (sscanf(key_filepath, "public_%lu.txt", key_length) == 1) {
+        ; // pass
+    } else if (sscanf(key_filepath, "private_%lu.txt", key_length) == 1) {
+        ; // pass
+    } else {
+        printf("The format of '%s' is not recognized.\n", key_filepath);
+    }
+
     FILE *file = fopen(key_filepath, "r");
     if (file == NULL) {
         printf("Error opening key file");
@@ -413,27 +423,108 @@ int decryption_process(char* filepath_input, char* filepath_output, unsigned lon
     fclose(outfile);
 }
 
+void print_help() {
+    printf("Usage: ./rsa_assign_1 [OPTIONS]\n");
+    printf("Options:\n");
+    printf("  -i path      Path to the input file\n");
+    printf("  -o path      Path to the output file\n");
+    printf("  -k path      Path to the key file\n");
+    printf("  -g length    Perform RSA key-pair generation given a key length \"length\"\n");
+    printf("  -d           Decrypt input and store results to output\n");
+    printf("  -e           Encrypt input and store results to output\n");
+    printf("  -a path      Analyze performance and store results to specified file\n");
+    printf("  -h           Show this help message\n");
+}
 
-int main() {
-    char filepath_input[100] = "files/input_file.txt";
-    char filepath_cipher[100] = "files/cipher_file.txt"; //temp for testing
-    char filepath_output[100] = "files/output_file.txt";
-    int key_length = 1024;
+int analyze_args(int argc, char *argv[], char** input_path, char** output_path, char** key_path, unsigned long int* key_length, int* mode) {
+    int option;
 
-    create_keys(key_length);
+    while ((option = getopt(argc, argv, "i:o:k:g:deha:")) != -1) {
+        switch (option) {
+            case 'i':
+                *input_path = optarg;
+                break;
+            case 'o':
+                *output_path = optarg;
+                break;
+            case 'k':
+                *key_path = optarg;
+                break;
+            case 'g':
+                *key_length = (unsigned long int)atoi(optarg);
+                *mode = 1; // Key generation mode
+                break;
+            case 'd':
+                *mode = 3; // Decryption mode
+                break;
+            case 'e':
+                *mode = 2; // Encryption mode
+                break;
+            case 'a':
+                *output_path = optarg;
+                *mode = 4; // Performance analysis mode
+                break;
+            case 'h':
+                print_help();
+                return 0;
+            default:
+                print_help();
+                return 1;
+        }
+    }
+    return 0;
+}
 
-    mpz_t n, e, d;
-    get_key("public_1024.key", n, e);
-    printf("Gotten:\nn: %s\n\ne: %s\n\n", mpz_get_str(NULL, 0, n), mpz_get_str(NULL, 0, e));
+int main(int argc, char *argv[]) {
+    char* input_path = NULL;
+    char* output_path = NULL;
+    char* key_path = NULL;
+    unsigned long int key_length = 0;
+    int mode = 0; // 1 generate keys, 2 encrypt, 3 decrypt, 4 analyze
 
-    get_key("private_1024.key", n, d);
-    printf("Gotten:\nn: %s\n\nd: %s\n\n", mpz_get_str(NULL, 0, n), mpz_get_str(NULL, 0, d));
+    if (analyze_args(argc, argv, &input_path, &output_path, &key_path, &key_length, &mode) != 0) {
+        return 1;
+    }
+    printf("=%ld=", key_length);
 
-    int ret;
-
-    ret = encryption_process(filepath_input, filepath_cipher, key_length, n, e);
-
-    ret = decryption_process(filepath_cipher, filepath_output, key_length, n, d);
+    // Options
+    if (mode == 1) { // Gen keys
+        if (key_length <= 0) {
+            fprintf(stderr, "Invalid key length\n");
+            return 1;
+        }
+        /* Generate Keys */
+        create_keys(key_length);
+    } else if (mode == 2) { // Encryption
+        if (!input_path || !output_path || !key_path) {
+            fprintf(stderr, "For encryption, -i, -o, and -k options are required.\n");
+            return 1;
+        }
+        /* Encrypt */
+        mpz_t n, e;
+        get_key(key_path, n, e, &key_length);
+        int ret;
+        ret = encryption_process(input_path, output_path, key_length, n, e);
+    } else if (mode == 3) { // Decryption
+        if (!input_path || !output_path || !key_path) {
+            fprintf(stderr, "For decryption, -i, -o, and -k options are required.\n");
+            return 1;
+        }
+        /* Encrypt */
+        mpz_t n, d;
+        get_key(key_path, n, d, &key_length);
+        int ret;
+        ret = decryption_process(input_path, output_path, key_length, n, d);
+    } else if (mode == 4) { // Performance analysis
+        if (!output_path) {
+            fprintf(stderr, "For performance analysis, -a option is required.\n");
+            return 1;
+        }
+        // idk yet
+    } else {
+        print_help();
+        return 1;
+    }
 
     return 0;
 }
