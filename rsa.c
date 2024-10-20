@@ -2,16 +2,30 @@
 #include <stdlib.h>
 #include <gmp.h>
 #include <string.h>
-#include <time.h>
 #include <unistd.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 
 #define STR_BASE 16
 #define PADDING_CHAR '1'
+#define TEST_MODE_OFF 0
+#define TEST_MODE_ON 1
+#define TESTING_PHRASE_REPEATS 2000
+
+int test_mode = TEST_MODE_OFF; // global var for testing 
 
 void check() {
     int temp = 0;
     printf("Check");
     scanf("%d", &temp);
+}
+
+double get_time_difference(struct timeval start, struct timeval end) {
+    return (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1e6; // s
+}
+
+long get_memory_usage(struct rusage usage) {
+    return usage.ru_maxrss; // kB
 }
 
 char nibbleToChar(unsigned char nibble) {
@@ -149,8 +163,8 @@ void generateRSAKeyPair(mpz_t n, mpz_t e, mpz_t d, unsigned long int key_length)
     while(mpz_cmp(p, q) == 0) { // repeat if p == q 
         generate_random_prime(p, key_length/2, state);
         generate_random_prime(q, key_length/2, state);
-        printf("p:\n%s\n\n", mpz_get_str(NULL, 0, p));
-        printf("q:\n%s\n\n", mpz_get_str(NULL, 0, q));
+        // printf("p:\n%s\n\n", mpz_get_str(NULL, 0, p));
+        // printf("q:\n%s\n\n", mpz_get_str(NULL, 0, q));
     }
 
     // n = p * q
@@ -233,7 +247,7 @@ void decrypt(char** decrypted_msg, mpz_t encrypted, mpz_t d, mpz_t n) {
     mpz_init(decrypted);
 
     mpz_powm(decrypted, encrypted, d, n);
-    printf("Decrypted:\n%s\n\n", mpz_get_str(NULL, STR_BASE, decrypted));
+    // printf("Decrypted:\n%s\n\n", mpz_get_str(NULL, STR_BASE, decrypted));
 
     *decrypted_msg = remove_padding(mpz_get_str(NULL, STR_BASE, decrypted));
 
@@ -244,8 +258,13 @@ void decrypt(char** decrypted_msg, mpz_t encrypted, mpz_t d, mpz_t n) {
 void save_keys(mpz_t n, mpz_t e, mpz_t d, unsigned long int key_length) {
     char public_filename[50];
     char private_filename[50];
-    snprintf(public_filename, sizeof(public_filename), "public_%lu.key", key_length);
-    snprintf(private_filename, sizeof(private_filename), "private_%lu.key", key_length);
+    if (test_mode == TEST_MODE_OFF) { // OFF
+        snprintf(public_filename, sizeof(public_filename), "public_%lu.key", key_length);
+        snprintf(private_filename, sizeof(private_filename), "private_%lu.key", key_length);
+    } else { // ON
+        snprintf(public_filename, sizeof(public_filename), "TESTING_public_%lu.key", key_length);
+        snprintf(private_filename, sizeof(private_filename), "TESTING_private_%lu.key", key_length);
+    }
 
     // Public key file
     FILE *public_file = fopen(public_filename, "w");
@@ -268,12 +287,22 @@ void save_keys(mpz_t n, mpz_t e, mpz_t d, unsigned long int key_length) {
 
 void get_key(char* key_filepath, mpz_t n, mpz_t key, long unsigned int* key_length) {
     // get length 
-    if (sscanf(key_filepath, "public_%lu.txt", key_length) == 1) {
-        ; // pass
-    } else if (sscanf(key_filepath, "private_%lu.txt", key_length) == 1) {
-        ; // pass
+    if (test_mode == TEST_MODE_OFF) {
+        if (sscanf(key_filepath, "public_%lu.txt", key_length) == 1) {
+            ; // pass
+        } else if (sscanf(key_filepath, "private_%lu.txt", key_length) == 1) {
+            ; // pass
+        } else {
+            printf("The format of '%s' is not recognized.\n", key_filepath);
+        }
     } else {
-        printf("The format of '%s' is not recognized.\n", key_filepath);
+        if (sscanf(key_filepath, "TESTING_public_%lu.txt", key_length) == 1) {
+            ; // pass
+        } else if (sscanf(key_filepath, "TESTING_private_%lu.txt", key_length) == 1) {
+            ; // pass
+        } else {
+            printf("The format of '%s' is not recognized.\n", key_filepath);
+        }
     }
 
     FILE *file = fopen(key_filepath, "r");
@@ -314,14 +343,15 @@ void get_key(char* key_filepath, mpz_t n, mpz_t key, long unsigned int* key_leng
     free(key_str);
 }
 
-void create_keys(unsigned long int key_length) {
+void create_keys(unsigned long int key_length, int test_mode) {
+    // test_mode: 0 (TEST_MODE_OFF) -> OFF | 1 -> ON
     // init vars
     mpz_t n, e, d;
     mpz_inits(n, e, d, NULL);
 
     // get rsa key pair
     generateRSAKeyPair(n, e, d, key_length);
-    printf("n: %s\n\ne: %s\n\nd: %s\n\n", mpz_get_str(NULL, 0, n), mpz_get_str(NULL, 0, e), mpz_get_str(NULL, 0, d));
+    // printf("n: %s\n\ne: %s\n\nd: %s\n\n", mpz_get_str(NULL, 0, n), mpz_get_str(NULL, 0, e), mpz_get_str(NULL, 0, d));
 
     save_keys(n, e, d, key_length);
 }
@@ -348,7 +378,7 @@ int encryption_process(char* filepath_input, char* filepath_output, unsigned lon
         mpz_init(encrypted);
 
         cur_cursor = read_file_hex(filepath_input, &message, key_length, cur_cursor);
-        printf("Original message:\n%s\n\n", message);
+        // printf("Original message:\n%s\n\n", message);
 
         // malloc error when reading file
         if (cur_cursor == -1) {
@@ -358,7 +388,7 @@ int encryption_process(char* filepath_input, char* filepath_output, unsigned lon
         /* RSA Process */
         encrypt(encrypted, &message, e, n);
 
-        printf("Encrypted: %s\n\n", mpz_get_str(NULL, STR_BASE, encrypted));
+        // printf("Encrypted: %s\n\n", mpz_get_str(NULL, STR_BASE, encrypted));
 
         fprintf(outfile, "%s\n", mpz_get_str(NULL, STR_BASE, encrypted));
 
@@ -366,7 +396,7 @@ int encryption_process(char* filepath_input, char* filepath_output, unsigned lon
         mpz_clear(encrypted);
         free(message);
         
-        printf("--------------------------------------------\n");
+        // printf("--------------------------------------------\n");
     }
     fclose(outfile);
 }
@@ -409,7 +439,7 @@ int decryption_process(char* filepath_input, char* filepath_output, unsigned lon
 
         decrypt(&decrypted_msg, encrypted, d, n);
 
-        printf("Decrypted2:\n%s\n\n", decrypted_msg);
+        // printf("Decrypted2:\n%s\n\n", decrypted_msg);
 
         fprintf(outfile, "%s", decrypted_msg);
 
@@ -417,7 +447,7 @@ int decryption_process(char* filepath_input, char* filepath_output, unsigned lon
         mpz_clear(encrypted);
         free(decrypted_msg);
 
-        printf("--------------------------------------------\n");
+        // printf("--------------------------------------------\n");
     }
     fclose(infile);
     fclose(outfile);
@@ -485,17 +515,19 @@ int main(int argc, char *argv[]) {
     if (analyze_args(argc, argv, &input_path, &output_path, &key_path, &key_length, &mode) != 0) {
         return 1;
     }
-    printf("=%ld=", key_length);
 
-    // Options
+    // Options:
+    // 1. Generate Keys
     if (mode == 1) { // Gen keys
         if (key_length <= 0) {
             fprintf(stderr, "Invalid key length\n");
             return 1;
         }
         /* Generate Keys */
-        create_keys(key_length);
-    } else if (mode == 2) { // Encryption
+        create_keys(key_length, TEST_MODE_OFF);
+        printf("Saved a random key pair of %lu bits.\n", key_length);
+    // 2. Encryption    
+    } else if (mode == 2) { 
         if (!input_path || !output_path || !key_path) {
             fprintf(stderr, "For encryption, -i, -o, and -k options are required.\n");
             return 1;
@@ -505,22 +537,124 @@ int main(int argc, char *argv[]) {
         get_key(key_path, n, e, &key_length);
         int ret;
         ret = encryption_process(input_path, output_path, key_length, n, e);
-    } else if (mode == 3) { // Decryption
+        mpz_clears(n, e, NULL);
+        printf("Encrypted %s to %s using keys from %s.\n", input_path, output_path, key_path);
+    // 3. Decryption
+    } else if (mode == 3) { 
         if (!input_path || !output_path || !key_path) {
             fprintf(stderr, "For decryption, -i, -o, and -k options are required.\n");
             return 1;
         }
-        /* Encrypt */
+        /* Decrypt */
         mpz_t n, d;
         get_key(key_path, n, d, &key_length);
         int ret;
         ret = decryption_process(input_path, output_path, key_length, n, d);
-    } else if (mode == 4) { // Performance analysis
+        mpz_clears(n, d, NULL);
+        printf("Decrypted %s to %s using keys from %s.\n", input_path, output_path, key_path);
+    } 
+    // 4. Performance analysis
+    else if (mode == 4) { 
         if (!output_path) {
             fprintf(stderr, "For performance analysis, -a option is required.\n");
             return 1;
         }
-        // idk yet
+        // test mode on 
+        test_mode = TEST_MODE_ON;
+
+        // temp files for data
+        char temp_input_file[100] = "TESTING_input_file.txt";
+        char temp_cipher_file[100] = "TESTING_cipher_file.txt";
+        char temp_output_file[100] = "TESTING_output_file.txt";
+
+        // add a bunch of info to temp TESTING_file_1.txt (input)
+        char test[16] = "testing phrase\n"; // Add a newline for better readability
+        FILE *file = fopen(temp_input_file, "w");
+        if (file == NULL) {
+            perror("Error opening file");
+            return 1; 
+        }
+        for (int i = 0; i < TESTING_PHRASE_REPEATS; i++) {
+            fprintf(file, "%s", test);
+        }
+        fclose(file);
+
+        // open performance.txt file 
+        FILE *perf_file = fopen(output_path, "w");
+        if (perf_file == NULL) {
+            perror("Error opening file");
+            return 1; 
+        }
+
+        // key lengths array 
+        int key_lengths[] = {1024, 2048, 4096};
+        // init keys
+        mpz_t n, e, d;
+        // init measurement vars 
+        // Encrypt
+        struct timeval start, end;
+        struct rusage usage_before, usage_after;
+
+        // Loop of diff key lengths
+        printf("Measured for key lengths ");
+        for (int i = 0; i < 3; i++) {
+            mpz_inits(n, e, d, NULL); // reset keys 
+
+            long unsigned int key_length = key_lengths[i];
+            printf("%lu ", key_length);
+            // create keys
+            create_keys(key_length, TEST_MODE_ON); 
+
+
+            // temp key files
+            char public_filename[100];
+            char private_filename[100];
+            snprintf(public_filename, sizeof(public_filename), "TESTING_public_%lu.key", key_length);
+            snprintf(private_filename, sizeof(private_filename), "TESTING_private_%lu.key", key_length);
+
+            // get keys n, e
+            get_key(public_filename, n, e, &key_length);
+
+            // encryption process
+            gettimeofday(&start, NULL);
+            getrusage(RUSAGE_SELF, &usage_before);
+            encryption_process(temp_input_file, temp_cipher_file, key_length, n, e);
+            gettimeofday(&end, NULL);
+            getrusage(RUSAGE_SELF, &usage_after);
+
+            double encryption_time = get_time_difference(start, end);
+            long encryption_memory = get_memory_usage(usage_after) - get_memory_usage(usage_before);
+
+            // get keys n, d
+            get_key(private_filename, n, d, &key_length);
+
+            // decryption process
+            gettimeofday(&start, NULL);
+            getrusage(RUSAGE_SELF, &usage_before);
+            decryption_process(temp_cipher_file, temp_output_file, key_length, n, d);
+            gettimeofday(&end, NULL);
+            getrusage(RUSAGE_SELF, &usage_after);
+
+            double decryption_time = get_time_difference(start, end);
+            long decryption_memory = get_memory_usage(usage_after) - get_memory_usage(usage_before);
+
+            // write measurements to file
+            fprintf(perf_file, "Key Length: %ld bits\n", key_length);
+            fprintf(perf_file, "Encryption Time: %.6fs\n", encryption_time);
+            fprintf(perf_file, "Decryption Time: %.6fs\n", decryption_time);
+            fprintf(perf_file, "Peak Memory Usage (Encryption): %ld Bytes\n", encryption_memory);
+            fprintf(perf_file, "Peak Memory Usage (Decryption): %ld Bytes\n\n", decryption_memory);
+
+            // delete temp files
+            if (remove(public_filename) != 0) { printf("Error deleting %s", public_filename); }
+            if (remove(private_filename) != 0) { printf("Error deleting %s", private_filename); }
+        }
+        if (remove(temp_input_file) != 0) { printf("Error deleting %s", temp_input_file); }
+        if (remove(temp_cipher_file) != 0) { printf("Error deleting %s", temp_cipher_file); }
+        if (remove(temp_output_file) != 0) { printf("Error deleting %s", temp_output_file); }
+        printf("\n");
+        test_mode = TEST_MODE_OFF;
+        
     } else {
         print_help();
         return 1;
