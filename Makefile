@@ -20,8 +20,8 @@ $(ECDH_O): $(ECDH_SRC)
 	$(CC) $(CFLAGS) -o $@ $< $(ECDH_LIBS)
 
 # Rule to build rsa_assign_1
-#$(RSA_O): $(RSA_SRC)
-#	$(CC) $(CFLAGS) -o $@ $< $(RSA_LIBS)
+$(RSA_O): $(RSA_SRC)
+	$(CC) $(CFLAGS) -o $@ $< $(RSA_LIBS)
 
 # Clean rule
 .PHONY: clean
