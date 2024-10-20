@@ -3,6 +3,7 @@
 #include <gmp.h>
 #include <string.h>
 #include <unistd.h>
+#include <getopt.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 
@@ -469,7 +470,7 @@ void print_help() {
 int analyze_args(int argc, char *argv[], char** input_path, char** output_path, char** key_path, unsigned long int* key_length, int* mode) {
     int option;
 
-    while ((option = getopt(argc, argv, "i:o:k:g:deha:")) != -1) {
+    while ((option = getopt(argc, argv, "i:o:k:g:d:e:h:a:")) != -1) {
         switch (option) {
             case 'i':
                 *input_path = optarg;
@@ -498,7 +499,7 @@ int analyze_args(int argc, char *argv[], char** input_path, char** output_path, 
                 print_help();
                 return 0;
             default:
-                printf("Invalid option\n");
+                print_help();
                 return 1;
         }
     }
