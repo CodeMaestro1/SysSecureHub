@@ -1,74 +1,130 @@
 #include <stdio.h>
 #include <sodium.h>
+#include <getopt.h>
 
-void print_hex(unsigned char *number, int size) {
-    for (int i = 0; i < size; i++) {
-        printf("%02x", number[i]);
+/* Define some globoal varialbes that we will need later*/
+unsigned char alice_private_key[crypto_box_SECRETKEYBYTES];
+unsigned char alice_public_key[crypto_box_PUBLICKEYBYTES]; 
+unsigned char bob_private_key[crypto_box_SECRETKEYBYTES];
+unsigned char bob_public_key[crypto_box_PUBLICKEYBYTES];
+unsigned char alice_shared_secret[crypto_scalarmult_BYTES];
+unsigned char bob_shared_secret[crypto_scalarmult_BYTES];
+
+char *nameFile = NULL;
+
+void int_to_byte_key(unsigned char *private_key, int number) {
+    for (int i = 0; i < crypto_box_SECRETKEYBYTES; i++) {
+        private_key[i] = (unsigned char)(number >> (i * 8));
     }
-    printf("\n");
 }
 
-int main() {
-    // init sodium
-    if (sodium_init() < 0) {
-        printf("Error init\n");
-        return 1;
+void handle_keys(unsigned char *private_key, unsigned char *public_key) {
+    if (private_key == NULL) {
+        crypto_box_keypair(public_key, private_key);
+    } else {
+        crypto_scalarmult_base(public_key, private_key);
+    }
+}
+
+
+
+void getArgs(int argc, char *argv[]) {
+    
+    char c;
+    while ((c = getopt(argc, argv, "o:a:b:h")) != -1) {
+        switch (c) {
+        case 'o':
+            nameFile = optarg;
+            break;
+        case 'a':
+            int_to_byte_key(alice_private_key, atoi(optarg));
+            break;
+        case 'b':
+            int_to_byte_key(bob_private_key, atoi(optarg));
+            break;
+        case 'h':
+            print_menu();
+            break;
+        default:
+            printf(stderr, "Invalid option\n");
+            break;
+        }
+    }
+}
+
+void file_handler(char *path) {
+    FILE *fp = fopen(path, "w");
+    if (fp == NULL) {
+        fprintf(stderr, "Error opening file %s!\n", path);
+        exit(1);
     }
 
-    /* Alice key pair */
-    unsigned char alice_pk[crypto_box_PUBLICKEYBYTES]; // public (A)
-    unsigned char alice_sk[crypto_box_SECRETKEYBYTES]; // private (a)
-    crypto_box_keypair(alice_pk, alice_sk);
+    fprintf(fp, "Alice's Public key:\n");
+    unsigned char hex_alice_public_key[crypto_box_PUBLICKEYBYTES * 2 + 1];
+    fputs(sodium_bin2hex(hex_alice_public_key, sizeof(hex_alice_public_key), alice_public_key, crypto_box_PUBLICKEYBYTES), fp);
+    fprintf(fp, "\n");
 
-    printf("Alice:\n");
-    printf("public key (A): ");
-    print_hex(alice_pk, crypto_box_PUBLICKEYBYTES);
-    printf("private key (a): ");
-    print_hex(alice_sk, crypto_box_SECRETKEYBYTES);
+    fprintf(fp, "Bob's Public key:\n");
+    unsigned char hex_bob_public_key[crypto_box_PUBLICKEYBYTES * 2 + 1];
+    fputs(sodium_bin2hex(hex_bob_public_key, sizeof(hex_bob_public_key), bob_public_key, crypto_box_PUBLICKEYBYTES), fp);
+    fprintf(fp, "\n");
 
-    /* Bob key pair */
-    unsigned char bob_pk[crypto_box_PUBLICKEYBYTES]; // public (B)
-    unsigned char bob_sk[crypto_box_SECRETKEYBYTES]; // private (b)
-    crypto_box_keypair(bob_pk, bob_sk);
+    fprintf(fp, "Shared Secret(ALice):\n");
+    unsigned char hex_alice_shared_secret[crypto_scalarmult_BYTES * 2 + 1];
+    fputs(sodium_bin2hex(hex_alice_shared_secret, sizeof(hex_alice_shared_secret), alice_shared_secret, crypto_scalarmult_BYTES), fp);
+    fprintf(fp, "\n");
 
-    printf("\nBob:\n");
-    printf("public key (B): ");
-    print_hex(bob_pk, crypto_box_PUBLICKEYBYTES);
-    printf("private key (b): ");
-    print_hex(bob_sk, crypto_box_SECRETKEYBYTES);
+    fprintf(fp, "Shared Secret(Bob):\n");
+    unsigned char hex_bob_shared_secret[crypto_scalarmult_BYTES * 2 + 1];
+    fputs(sodium_bin2hex(hex_bob_shared_secret, sizeof(hex_bob_shared_secret), bob_shared_secret, crypto_scalarmult_BYTES), fp);
+    fprintf(fp, "\n");
+
+    if (sodium_memcmp(alice_shared_secret, bob_shared_secret, crypto_scalarmult_BYTES) == 0) {
+        fprintf(fp, "Shared secrets match\n");
+    } else {
+        fprintf(fp, "Shared secrets do not match\n");
+    }
+
+    fclose(fp);
+}
+
+void print_menu(){
+    printf("Usage: ecdh -o path [-a number] [-b number] [-h]\n");
+    printf("Options:\n");
+    printf(" -o path Path to output file\n");
+    printf(" -a number. Alice's private key(optional)\n");
+    printf(" -b number. Bob's private key(optional)\n");
+    printf(" -h This help message\n");
+}
+
+/**
+ * @brief Main function of the program.
+ */
+int main(int argc, char *argv[]) {
+    // init sodium
+    if (sodium_init() < 0) {
+        printf(stderr, "Error init\n");
+        return 1;
+    
+    getArgs(argc, argv);
+    handle_keys(alice_private_key, alice_public_key);
+    handle_keys(bob_private_key, bob_public_key);
 
     unsigned char S_A[crypto_scalarmult_SCALARBYTES];
     unsigned char S_B[crypto_scalarmult_SCALARBYTES];
 
     /* Calculate shared secret for each side */
-    if (crypto_scalarmult(S_A, alice_sk, bob_pk) != 0) {
+    
+    if (crypto_scalarmult(S_A, alice_private_key, bob_public_key) != 0) {
         printf("Error\n");
     }
-    if (crypto_scalarmult(S_B, bob_sk, alice_pk) != 0) {
+    if (crypto_scalarmult(S_B, bob_private_key, alice_public_key) != 0) {
         printf("Error\n");
     }
 
-    printf("\nAlice's shared secret (S_A = a * B): \n");
-    print_hex(S_A, crypto_scalarmult_SCALARBYTES);
-    printf("Bob's shared secret (S_B = b * A): \n");
-    print_hex(S_B, crypto_scalarmult_SCALARBYTES);
-
-    if (crypto_verify_32(S_A, S_B) == 0) {
-        printf("\nShared secrets are equal\n");
-    } else {
-        printf("\nShared secrets are NOT equal\n");
-    }
-
-    // aside (I quit)
-    // printf("\nTheory verification (S_A = S_B = (a * b) * G):\n");
-    // unsigned char S_ver[crypto_scalarmult_SCALARBYTES];
-    // unsigned char temp[crypto_scalarmult_SCALARBYTES];
-    // crypto_core_ed25519_scalar_add(temp, alice_sk, bob_sk);
-    // if (crypto_scalarmult_base(S_ver, temp) != 0) {
-    //     printf("Error\n");
-    // }
-    // printf("\nS_verify: \n");
-    // print_hex(S_ver, crypto_scalarmult_SCALARBYTES);
-
+    //Everything is done, let's wrte the output to the file
+    file_hanlder(nameFile);
     return 0;
+
+}
 }
