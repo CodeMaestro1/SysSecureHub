@@ -1,30 +1,29 @@
 # Compiler and flags
 CC=gcc
-CFLAGS=-I.
+CFLAGS = -Wall -Wextra -g
 
-# Target executable
-TARGET=main
+# Define the source files and output files
+ECDH_SRC = ecdh.c
+ECDH_O = ecdh_assign_1
+RSA_SRC = rsa.c
+RSA_O = rsa_assign_1
 
-# Source files
-SRCS=$(wildcard *.c)
+# Define libraries to link against
+ECDH_LIBS = -lsodium
+RSA_LIBS = -lgmp
 
-# Object files
-OBJS=$(SRCS:.c=.o)
+# Default option for make
+all: $(ECDH_O) $(RSA_O)
 
-# Rule to build the executable
-$(TARGET): $(OBJS)
-	$(CC) -o $@ $^ $(CFLAGS)
+# Rule to build ecdh_assign_1
+$(ECDH_O): $(ECDH_SRC)
+	$(CC) $(CFLAGS) -o $@ $< $(ECDH_LIBS)
 
-# Rule to build object files
-%.o: %.c
-	$(CC) -c -o $@ $< $(CFLAGS)
-
-# Rule to compile and execute ecdh_assign_1 with user-specified arguments # run it like: make run_ecdh ARGS="-o ecdh.txt -a 5 -b 2"
-.PHONY: run_ecdh
-run_ecdh: $(TARGET)
-	./$(TARGET) $(ARGS)
+# Rule to build rsa_assign_1
+#$(RSA_O): $(RSA_SRC)
+#	$(CC) $(CFLAGS) -o $@ $< $(RSA_LIBS)
 
 # Clean rule
 .PHONY: clean
 clean:
-	rm -f $(TARGET) $(OBJS)
+	rm -f $(ECDH_O) $(RSA_O) *.o

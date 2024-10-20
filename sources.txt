@@ -29,3 +29,9 @@ https://gmplib.org/manual/Number-Theoretic-Functions
 
 public key is usually 65537?:
 https://www.reddit.com/r/crypto/comments/6363di/how_do_computers_choose_the_rsa_value_for_e/
+
+
+<General>
+https://azrael.digipen.edu/~mmead/www/Courses/CS180/getopt.html
+
+https://www.geeksforgeeks.org/getopt-function-in-c-to-parse-command-line-arguments/
