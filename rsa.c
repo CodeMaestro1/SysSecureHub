@@ -181,12 +181,6 @@ void generateRSAKeyPair(mpz_t n, mpz_t e, mpz_t d, unsigned long int key_length)
 
     // clear vars
     gmp_randclear(state);
-    //mpz_clear(p);
-    //mpz_clear(q);
-    //mpz_clear(p_1);
-    //mpz_clear(q_1);
-    //mpz_clear(lambda);
-    //mpz_clear(gcd);
     mpz_clears(p, q, p_1, q_1, lambda, gcd, NULL);
 }
 
@@ -357,7 +351,6 @@ int encryption_process(char* filepath_input, char* filepath_output, unsigned lon
         mpz_init(encrypted);
 
         cur_cursor = read_file_hex(filepath_input, &message, key_length, cur_cursor);
-        // printf("Original message:\n%s\n\n", message);
 
         // malloc error when reading file
         if (cur_cursor == -1) {
@@ -366,8 +359,6 @@ int encryption_process(char* filepath_input, char* filepath_output, unsigned lon
 
         /* RSA Process */
         encrypt(encrypted, &message, e, n);
-
-        // printf("Encrypted: %s\n\n", mpz_get_str(NULL, STR_BASE, encrypted));
 
         fprintf(outfile, "%s\n", mpz_get_str(NULL, STR_BASE, encrypted));
 
@@ -469,7 +460,7 @@ int analyze_args(int argc, char *argv[], char** input_path, char** output_path, 
                 break;
             case 'h':
                 print_help();
-                return 0;
+                break; //prefer the break to get out of the loop
             default:
                 printf("Invalid option\n");
                 return 1;
@@ -626,9 +617,6 @@ int main(int argc, char *argv[]) {
         printf("\n");
         test_mode = TEST_MODE_OFF;
         
-    } else {
-        print_help();
-        return 1;
     }
 
     return 0;
