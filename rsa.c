@@ -15,12 +15,6 @@
 
 int test_mode = TEST_MODE_OFF; // global var for testing 
 
-void check() {
-    int temp = 0;
-    printf("Check");
-    scanf("%d", &temp);
-}
-
 double get_time_difference(struct timeval start, struct timeval end) {
     return (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1e6; // s
 }
@@ -90,66 +84,54 @@ int read_file_hex(char* filepath, char** message, unsigned long int key_length, 
     return new_cursor;
 }
 
-char* hex_stream_to_ascii(char *hexString) {
-    long hexLength = strlen(hexString); // Get the length of the hex string
+char* hex_stream_to_ascii(const char *hexString) {
+    long hexLength = strlen(hexString);
+
+    // Check if the hex string length is even
+    if (hexLength % 2 != 0) {
+        printf("Invalid hex string length\n");
+        return NULL;
+    }
 
     // Each pair of hex digits corresponds to one ASCII character
     long asciiLength = hexLength / 2;
     
-    char* asciiString; 
-    asciiString = (char *)malloc(asciiLength + 1); // +1 for '/0'
-
+    char* asciiString = (char *)malloc(asciiLength + 1); // +1 for '\0'
     if (asciiString == NULL) {
-        printf("ascii string malloc error");
+        printf("Memory allocation error\n");
         return NULL;
     }
 
     for (long i = 0; i < asciiLength; i++) {
-        unsigned int byteValue;
-        // use sscanf because it provides hexadecimal integer support (painful)
-        // gets first 2 chars at pointer and stores them in byteValue 
-        sscanf(&hexString[i*2], "%2x", &byteValue); 
-        asciiString[i] = (char)byteValue;
+        char hexByte[3] = { hexString[i*2], hexString[i*2 + 1], '\0' };
+        
+        // Check if the characters are valid hex digits
+        if (!isxdigit(hexByte[0]) || !isxdigit(hexByte[1])) {
+            printf("Invalid hex digit\n");
+            free(asciiString);
+            return NULL;
+        }
+
+        asciiString[i] = (char)strtol(hexByte, NULL, 16);
     }
     asciiString[asciiLength] = '\0';
-
 
     return asciiString;
 }
 
 void generate_random_prime(mpz_t prime, unsigned long int bit_length, gmp_randstate_t state) {
-    // mpz_t seed;
-    // mpz_init(seed);
-    // mpz_set_ui(seed, (unsigned long int)time(NULL));
-    // printf("%s\n\n", mpz_get_str(NULL, 0, seed));
-    // scanf("%d", seed);
-    // unsigned long int seed = (unsigned long int) time(NULL);
-
-    // // random state
-    // gmp_randstate_t state; // random state for generating random nums
-    // gmp_randinit_mt(state); // Mersenne Twister algorithm because I saw it online 
-    // gmp_randseed_ui(state, seed); // more randomness based on time 
-    // gmp_randseed(state, seed);
-    
-
-    // rand_num place-holder init 
     mpz_t rand_num;
-    mpz_init(rand_num); 
+    mpz_init(rand_num);
 
-    // generate random number
-    mpz_urandomb(rand_num, state, bit_length); 
-    // find next prime
-    mpz_nextprime(prime, rand_num); 
-    // check if prime is of desired length in bits 
-    while (mpz_sizeinbase(prime, 2) != bit_length) {
-        // repeat until (hopefully) true  
+    do {
+        // Generate a random number of the specified bit length
         mpz_urandomb(rand_num, state, bit_length);
+        // Find the next prime greater than the random number
         mpz_nextprime(prime, rand_num);
-    }
+    } while (mpz_sizeinbase(prime, 2) != bit_length); // Repeat until the prime has the desired bit length
 
-    // clear vars
+    // Clear the random number variable
     mpz_clear(rand_num);
-    // gmp_randclear(state);
 }
 
 void generateRSAKeyPair(mpz_t n, mpz_t e, mpz_t d, unsigned long int key_length) {
@@ -164,8 +146,7 @@ void generateRSAKeyPair(mpz_t n, mpz_t e, mpz_t d, unsigned long int key_length)
     while(mpz_cmp(p, q) == 0) { // repeat if p == q 
         generate_random_prime(p, key_length/2, state);
         generate_random_prime(q, key_length/2, state);
-        // printf("p:\n%s\n\n", mpz_get_str(NULL, 0, p));
-        // printf("q:\n%s\n\n", mpz_get_str(NULL, 0, q));
+
     }
 
     // n = p * q
@@ -199,12 +180,13 @@ void generateRSAKeyPair(mpz_t n, mpz_t e, mpz_t d, unsigned long int key_length)
 
     // clear vars
     gmp_randclear(state);
-    mpz_clear(p);
-    mpz_clear(q);
-    mpz_clear(p_1);
-    mpz_clear(q_1);
-    mpz_clear(lambda);
-    mpz_clear(gcd);
+    //mpz_clear(p);
+    //mpz_clear(q);
+    //mpz_clear(p_1);
+    //mpz_clear(q_1);
+    //mpz_clear(lambda);
+    //mpz_clear(gcd);
+    mpz_clears(p, q, p_1, q_1, lambda, gcd);
 }
 
 char* add_padding(char* str) {
@@ -248,7 +230,6 @@ void decrypt(char** decrypted_msg, mpz_t encrypted, mpz_t d, mpz_t n) {
     mpz_init(decrypted);
 
     mpz_powm(decrypted, encrypted, d, n);
-    // printf("Decrypted:\n%s\n\n", mpz_get_str(NULL, STR_BASE, decrypted));
 
     *decrypted_msg = remove_padding(mpz_get_str(NULL, STR_BASE, decrypted));
 
@@ -345,14 +326,11 @@ void get_key(char* key_filepath, mpz_t n, mpz_t key, long unsigned int* key_leng
 }
 
 void create_keys(unsigned long int key_length, int test_mode) {
-    // test_mode: 0 (TEST_MODE_OFF) -> OFF | 1 -> ON
-    // init vars
     mpz_t n, e, d;
     mpz_inits(n, e, d, NULL);
 
     // get rsa key pair
     generateRSAKeyPair(n, e, d, key_length);
-    // printf("n: %s\n\ne: %s\n\nd: %s\n\n", mpz_get_str(NULL, 0, n), mpz_get_str(NULL, 0, e), mpz_get_str(NULL, 0, d));
 
     save_keys(n, e, d, key_length);
 }
@@ -395,9 +373,7 @@ int encryption_process(char* filepath_input, char* filepath_output, unsigned lon
 
         // clear vars
         mpz_clear(encrypted);
-        free(message);
-        
-        // printf("--------------------------------------------\n");
+        free(message)
     }
     fclose(outfile);
 }
@@ -429,18 +405,14 @@ int decryption_process(char* filepath_input, char* filepath_output, unsigned lon
     while (getline(&encrypted_str, &temp, infile) != -1) {
         mpz_init(encrypted);
         long enc_len = strlen(encrypted_str);
-        // printf("\n==%s==\n", encrypted_str);
         if (enc_len > 0 && encrypted_str[enc_len - 1] == '\n') { // if might be redundant 
             encrypted_str[enc_len - 1] = '\0';  // replace '\n' with '\0'
         }
-        // printf("\n==%s==\n", encrypted_str);
 
         // put line in mpz var
         mpz_set_str(encrypted, encrypted_str, STR_BASE);
 
         decrypt(&decrypted_msg, encrypted, d, n);
-
-        // printf("Decrypted2:\n%s\n\n", decrypted_msg);
 
         fprintf(outfile, "%s", decrypted_msg);
 
@@ -448,7 +420,6 @@ int decryption_process(char* filepath_input, char* filepath_output, unsigned lon
         mpz_clear(encrypted);
         free(decrypted_msg);
 
-        // printf("--------------------------------------------\n");
     }
     fclose(infile);
     fclose(outfile);
