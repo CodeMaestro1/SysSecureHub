@@ -6,6 +6,7 @@
 #include <getopt.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <ctype.h> // for isxdigit()
 
 #define STR_BASE 16
 #define PADDING_CHAR '1'
@@ -44,8 +45,8 @@ int read_file_hex(char* filepath, char** message, unsigned long int key_length, 
     fileSize = ftell(fptr); // get file size
     fseek(fptr, cur_cursor, SEEK_SET); // reset cursor to start
 
-    long  new_cursor;
-    long remaining_len = fileSize - cur_cursor;
+    long new_cursor;
+    long unsigned int remaining_len = fileSize - cur_cursor;
     if (remaining_len > (key_length/8)-1) {
         fileSize = (key_length/8)-1;
         new_cursor = cur_cursor + fileSize;
@@ -176,7 +177,7 @@ void generateRSAKeyPair(mpz_t n, mpz_t e, mpz_t d, unsigned long int key_length)
     }
 
     // find private key (d)
-    mpz_invert(d, e, lambda) == 0;
+    mpz_invert(d, e, lambda);
 
     // clear vars
     gmp_randclear(state);
@@ -186,7 +187,7 @@ void generateRSAKeyPair(mpz_t n, mpz_t e, mpz_t d, unsigned long int key_length)
     //mpz_clear(q_1);
     //mpz_clear(lambda);
     //mpz_clear(gcd);
-    mpz_clears(p, q, p_1, q_1, lambda, gcd);
+    mpz_clears(p, q, p_1, q_1, lambda, gcd, NULL);
 }
 
 char* add_padding(char* str) {
@@ -295,8 +296,8 @@ void get_key(char* key_filepath, mpz_t n, mpz_t key, long unsigned int* key_leng
 
     char *n_str = NULL;
     char *key_str = NULL;
-    long n_size = 0;
-    long key_size = 0;
+    size_t n_size = 0;
+    size_t key_size = 0;
 
     // get keys
     if (getline(&n_str, &n_size, file) == -1) {
@@ -325,7 +326,7 @@ void get_key(char* key_filepath, mpz_t n, mpz_t key, long unsigned int* key_leng
     free(key_str);
 }
 
-void create_keys(unsigned long int key_length, int test_mode) {
+void create_keys(unsigned long int key_length) {
     mpz_t n, e, d;
     mpz_inits(n, e, d, NULL);
 
@@ -339,7 +340,6 @@ int encryption_process(char* filepath_input, char* filepath_output, unsigned lon
     /* init vars */
     // message vars (in between)
     char *message = NULL;
-    char *full_message = NULL;
     mpz_t encrypted;
 
     // cursor
@@ -373,20 +373,20 @@ int encryption_process(char* filepath_input, char* filepath_output, unsigned lon
 
         // clear vars
         mpz_clear(encrypted);
-        free(message)
+        free(message);
     }
     fclose(outfile);
+    return 0;
 }
 
-int decryption_process(char* filepath_input, char* filepath_output, unsigned long int key_length, mpz_t n, mpz_t d) {
+int decryption_process(char* filepath_input, char* filepath_output, mpz_t n, mpz_t d) {
     /* init vars */
     // message vars (in between)
-    char *full_message = NULL;
     mpz_t encrypted;
     char* decrypted_msg;
     // init encrypted str (for reading lines)
     char* encrypted_str = NULL;
-    long temp = 0;
+    size_t temp = 0;
 
     // open in file
     FILE *infile = fopen(filepath_input, "r"); 
@@ -423,6 +423,7 @@ int decryption_process(char* filepath_input, char* filepath_output, unsigned lon
     }
     fclose(infile);
     fclose(outfile);
+    return 0;
 }
 
 void print_help() {
@@ -441,7 +442,7 @@ void print_help() {
 int analyze_args(int argc, char *argv[], char** input_path, char** output_path, char** key_path, unsigned long int* key_length, int* mode) {
     int option;
 
-    while ((option = getopt(argc, argv, "i:o:k:g:d:e:h:a:")) != -1) {
+    while ((option = getopt(argc, argv, "i:o:k:g:deha:")) != -1) {
         switch (option) {
             case 'i':
                 *input_path = optarg;
@@ -470,7 +471,7 @@ int analyze_args(int argc, char *argv[], char** input_path, char** output_path, 
                 print_help();
                 return 0;
             default:
-                print("Invalid option\n");
+                printf("Invalid option\n");
                 return 1;
         }
     }
@@ -496,7 +497,7 @@ int main(int argc, char *argv[]) {
             return 1;
         }
         /* Generate Keys */
-        create_keys(key_length, TEST_MODE_OFF);
+        create_keys(key_length);
         printf("Saved a random key pair of %lu bits.\n", key_length);
     // 2. Encryption    
     } else if (mode == 2) { 
@@ -507,8 +508,7 @@ int main(int argc, char *argv[]) {
         /* Encrypt */
         mpz_t n, e;
         get_key(key_path, n, e, &key_length);
-        int ret;
-        ret = encryption_process(input_path, output_path, key_length, n, e);
+        encryption_process(input_path, output_path, key_length, n, e);
         mpz_clears(n, e, NULL);
         printf("Encrypted %s to %s using keys from %s.\n", input_path, output_path, key_path);
     // 3. Decryption
@@ -520,8 +520,7 @@ int main(int argc, char *argv[]) {
         /* Decrypt */
         mpz_t n, d;
         get_key(key_path, n, d, &key_length);
-        int ret;
-        ret = decryption_process(input_path, output_path, key_length, n, d);
+        decryption_process(input_path, output_path, n, d);
         mpz_clears(n, d, NULL);
         printf("Decrypted %s to %s using keys from %s.\n", input_path, output_path, key_path);
     } 
@@ -575,7 +574,7 @@ int main(int argc, char *argv[]) {
             long unsigned int key_length = key_lengths[i];
             printf("%lu ", key_length);
             // create keys
-            create_keys(key_length, TEST_MODE_ON); 
+            create_keys(key_length); 
 
 
             // temp key files
@@ -603,7 +602,7 @@ int main(int argc, char *argv[]) {
             // decryption process
             gettimeofday(&start, NULL);
             getrusage(RUSAGE_SELF, &usage_before);
-            decryption_process(temp_cipher_file, temp_output_file, key_length, n, d);
+            decryption_process(temp_cipher_file, temp_output_file, n, d);
             gettimeofday(&end, NULL);
             getrusage(RUSAGE_SELF, &usage_after);
 
