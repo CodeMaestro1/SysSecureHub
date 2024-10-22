@@ -21,7 +21,7 @@ double get_time_difference(struct timeval start, struct timeval end) {
 }
 
 long get_memory_usage(struct rusage usage) {
-    return usage.ru_maxrss; // kB
+    return usage.ru_maxrss * 1024;  // bytes
 }
 
 char nibbleToChar(unsigned char nibble) {
@@ -139,9 +139,9 @@ void generateRSAKeyPair(mpz_t n, mpz_t e, mpz_t d, unsigned long int key_length)
     mpz_t p, q;
     mpz_inits(p, q, NULL);
 
-    // init state here because gmp_randseed_ui or gmp_randseed refused to work
+    // init state here
     gmp_randstate_t state; // random state for generating random nums
-    gmp_randinit_mt(state); // Mersenne Twister algorithm because I saw it online 
+    gmp_randinit_mt(state);
 
     // generate random primes for p, q 
     while(mpz_cmp(p, q) == 0) { // repeat if p == q 
@@ -149,20 +149,18 @@ void generateRSAKeyPair(mpz_t n, mpz_t e, mpz_t d, unsigned long int key_length)
         generate_random_prime(q, key_length/2, state);
 
     }
-
-    // n = p * q
-    mpz_mul(n, p, q);
+    
+    mpz_mul(n, p, q);// n = p * q
 
     // lambda(n) = (p-1) * (q-1) process 
     mpz_t p_1, q_1, lambda;
     mpz_inits(p_1, q_1, lambda, NULL);
 
-    // p_1 = p - 1
-    mpz_sub_ui(p_1, p, 1);
-    // q_1 = 1 - 1
-    mpz_sub_ui(q_1, q, 1);
-    // lambda(n) = (p-1) * (q-1)
-    mpz_mul(lambda, p_1, q_1);
+    mpz_sub_ui(p_1, p, 1);// p_1 = p - 1
+   
+    mpz_sub_ui(q_1, q, 1); // q_1 = 1 - 1
+    
+    mpz_mul(lambda, p_1, q_1);// lambda(n) = (p-1) * (q-1)
 
     // Use common public key (e) 65537
     // assumes length > 17 (?)
@@ -263,23 +261,21 @@ void save_keys(mpz_t n, mpz_t e, mpz_t d, unsigned long int key_length) {
 }
 
 void get_key(char* key_filepath, mpz_t n, mpz_t key, long unsigned int* key_length) {
-    // get length 
+
+    const char* format_error = "The format of '%s' is not recognized.\n";
+    int valid_format = 0;
+
     if (test_mode == TEST_MODE_OFF) {
-        if (sscanf(key_filepath, "public_%lu.txt", key_length) == 1) {
-            ; // pass
-        } else if (sscanf(key_filepath, "private_%lu.txt", key_length) == 1) {
-            ; // pass
-        } else {
-            printf("The format of '%s' is not recognized.\n", key_filepath);
-        }
+        valid_format = (sscanf(key_filepath, "public_%lu.txt", key_length) == 1 ||
+                        sscanf(key_filepath, "private_%lu.txt", key_length) == 1);
     } else {
-        if (sscanf(key_filepath, "TESTING_public_%lu.txt", key_length) == 1) {
-            ; // pass
-        } else if (sscanf(key_filepath, "TESTING_private_%lu.txt", key_length) == 1) {
-            ; // pass
-        } else {
-            printf("The format of '%s' is not recognized.\n", key_filepath);
-        }
+        valid_format = (sscanf(key_filepath, "TESTING_public_%lu.txt", key_length) == 1 ||
+                        sscanf(key_filepath, "TESTING_private_%lu.txt", key_length) == 1);
+    }
+
+    if (!valid_format) {
+        printf(format_error, key_filepath);
+        return;
     }
 
     FILE *file = fopen(key_filepath, "r");
@@ -309,6 +305,7 @@ void get_key(char* key_filepath, mpz_t n, mpz_t key, long unsigned int* key_leng
         return;
     }
 
+    // remove newline char
     n_str[strcspn(n_str, "\n")] = '\0';
     key_str[strcspn(key_str, "\n")] = '\0';
 
