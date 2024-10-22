@@ -13,16 +13,31 @@
 #define TEST_MODE_OFF 0
 #define TEST_MODE_ON 1
 #define TESTING_PHRASE_REPEATS 2000
+#define PERFORMANCE_FILE "performance.txt"
 
 int test_mode = TEST_MODE_OFF; // global var for testing 
 
 double get_time_difference(struct timeval start, struct timeval end) {
-    return (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1e6; // s
+    long seconds = end.tv_sec - start.tv_sec;
+    long microseconds = end.tv_usec - start.tv_usec;
+
+    // Adjust for negative microseconds difference
+    if (microseconds < 0) {
+        seconds -= 1;
+        microseconds += 1000000;
+    }
+
+    return (double)seconds + (double)microseconds / 1e6; // Convert microseconds to seconds
 }
 
-long get_memory_usage(struct rusage usage) {
-    return usage.ru_maxrss * 1024;  // bytes
+// Function to get peak memory usage
+long get_peak_memory_usage() {
+    struct rusage usage;
+    getrusage(RUSAGE_SELF, &usage);
+    return usage.ru_maxrss *1024; // Peak resident set size in bytes
 }
+
+
 
 char nibbleToChar(unsigned char nibble) {
     if (nibble < 10) {
@@ -56,7 +71,7 @@ int read_file_hex(char* filepath, char** message, unsigned long int key_length, 
     }
 
     *message = (char *)malloc(2 * fileSize + 1); // each byte has 2 hex chars
-    if(message == NULL) {
+    if(*message == NULL) {
         printf("message malloc error\n");
         fclose(fptr);
         return -1;
@@ -127,8 +142,11 @@ void generate_random_prime(mpz_t prime, unsigned long int bit_length, gmp_randst
     do {
         // Generate a random number of the specified bit length
         mpz_urandomb(rand_num, state, bit_length);
-        // Find the next prime greater than the random number
-        mpz_nextprime(prime, rand_num);
+        // Ensure the random number has the desired bit length
+        if (mpz_sizeinbase(rand_num, 2) == bit_length) {
+            // Find the next prime greater than the random number
+            mpz_nextprime(prime, rand_num);
+        }
     } while (mpz_sizeinbase(prime, 2) != bit_length); // Repeat until the prime has the desired bit length
 
     // Clear the random number variable
@@ -164,7 +182,7 @@ void generateRSAKeyPair(mpz_t n, mpz_t e, mpz_t d, unsigned long int key_length)
 
     // Use common public key (e) 65537
     // assumes length > 17 (?)
-    // for large lengths condition: e % lambda(n) != 0 is likely true 
+    // for large lengths condition: e % lambda(n) != 0 is likely true //TODO: check
     mpz_set_ui(e, 65537);
 
     // check if it's co-prime of lambda
@@ -216,8 +234,6 @@ void encrypt(mpz_t encrypted, char** message, mpz_t e, mpz_t n) {
         mpz_clear(mpz_message);
         return;
     }
-
-    //mpz_set_str(mpz_message, *message, STR_BASE);
 
     // encryption process
     mpz_powm(encrypted, mpz_message, e, n);
@@ -369,16 +385,18 @@ int encryption_process(char* filepath_input, char* filepath_output, unsigned lon
 
         // clear vars
         mpz_clear(encrypted);
-        free(message);
+        
     }
+    
     fclose(outfile);
+    free(message);
     return 0;
 }
 
 int decryption_process(char* filepath_input, char* filepath_output, mpz_t n, mpz_t d) {
     /* init vars */
     // message vars (in between)
-    mpz_t encrypted;
+    mpz_t encrypted_1;
     char* decrypted_msg;
     // init encrypted str (for reading lines)
     char* encrypted_str = NULL;
@@ -399,26 +417,27 @@ int decryption_process(char* filepath_input, char* filepath_output, mpz_t n, mpz
 
     // Read each line from the file using getline
     while (getline(&encrypted_str, &temp, infile) != -1) {
-        mpz_init(encrypted);
+        mpz_init(encrypted_1);
         long enc_len = strlen(encrypted_str);
         if (enc_len > 0 && encrypted_str[enc_len - 1] == '\n') { // if might be redundant 
             encrypted_str[enc_len - 1] = '\0';  // replace '\n' with '\0'
         }
 
         // put line in mpz var
-        mpz_set_str(encrypted, encrypted_str, STR_BASE);
+        mpz_set_str(encrypted_1, encrypted_str, STR_BASE);
 
-        decrypt(&decrypted_msg, encrypted, d, n);
+        decrypt(&decrypted_msg, encrypted_1, d, n);
 
         fprintf(outfile, "%s", decrypted_msg);
 
         // clear vars
-        mpz_clear(encrypted);
-        free(decrypted_msg);
+        mpz_clear(encrypted_1);
+        
 
     }
     fclose(infile);
     fclose(outfile);
+    free(decrypted_msg);
     return 0;
 }
 
@@ -503,6 +522,7 @@ int main(int argc, char *argv[]) {
         }
         /* Encrypt */
         mpz_t n, e;
+        mpz_inits(n, e , NULL);
         get_key(key_path, n, e, &key_length);
         encryption_process(input_path, output_path, key_length, n, e);
         mpz_clears(n, e, NULL);
@@ -513,7 +533,7 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "For decryption, -i, -o, and -k options are required.\n");
             return 1;
         }
-        /* Decrypt */
+        /* Decrypt */  //TODO: We need to implement check if the get_key fails and etc
         mpz_t n, d;
         get_key(key_path, n, d, &key_length);
         decryption_process(input_path, output_path, n, d);
@@ -554,13 +574,12 @@ int main(int argc, char *argv[]) {
         }
 
         // key lengths array 
-        int key_lengths[] = {1024, 2048, 4096};
-        // init keys
-        mpz_t n, e, d;
-        // init measurement vars 
+        int key_lengths[] = {1024, 2048, 4096};// init keys
+        
+        mpz_t n, e, d; // init measurement vars 
+        
         // Encrypt
         struct timeval start, end;
-        struct rusage usage_before, usage_after;
 
         // Loop of diff key lengths
         printf("Measured for key lengths ");
@@ -584,26 +603,29 @@ int main(int argc, char *argv[]) {
 
             // encryption process
             gettimeofday(&start, NULL);
-            getrusage(RUSAGE_SELF, &usage_before);
+            long initial_memory_encryption = get_peak_memory_usage();
             encryption_process(temp_input_file, temp_cipher_file, key_length, n, e);
+            long final_memory_encryption = get_peak_memory_usage();
             gettimeofday(&end, NULL);
-            getrusage(RUSAGE_SELF, &usage_after);
 
             double encryption_time = get_time_difference(start, end);
-            long encryption_memory = get_memory_usage(usage_after) - get_memory_usage(usage_before);
+
+            long encryption_memory = final_memory_encryption - initial_memory_encryption;
 
             // get keys n, d
             get_key(private_filename, n, d, &key_length);
 
             // decryption process
             gettimeofday(&start, NULL);
-            getrusage(RUSAGE_SELF, &usage_before);
+            long initial_memory_decryption = get_peak_memory_usage();
             decryption_process(temp_cipher_file, temp_output_file, n, d);
+            long final_memory_decryption = get_peak_memory_usage();
             gettimeofday(&end, NULL);
-            getrusage(RUSAGE_SELF, &usage_after);
+            
 
             double decryption_time = get_time_difference(start, end);
-            long decryption_memory = get_memory_usage(usage_after) - get_memory_usage(usage_before);
+
+            long decryption_memory = final_memory_decryption - initial_memory_decryption;
 
             // write measurements to file
             fprintf(perf_file, "Key Length: %ld bits\n", key_length);
