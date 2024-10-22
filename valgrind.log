@@ -1,0 +1,87 @@
+==24288== Memcheck, a memory error detector
+==24288== Copyright (C) 2002-2022, and GNU GPL'd, by Julian Seward et al.
+==24288== Using Valgrind-3.22.0 and LibVEX; rerun with -h for copyright info
+==24288== Command: ./rsa_assign_1 -a testFile.txt
+==24288== Parent PID: 17427
+==24288== 
+==24288== 
+==24288== HEAP SUMMARY:
+==24288==     in use at exit: 4,200 bytes in 19 blocks
+==24288==   total heap usage: 5,320 allocs, 5,301 frees, 5,652,410 bytes allocated
+==24288== 
+==24288== 24 bytes in 3 blocks are definitely lost in loss record 1 of 8
+==24288==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==24288==    by 0x48748D4: __gmp_default_allocate (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+==24288==    by 0x488616B: __gmpz_realloc (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+==24288==    by 0x4888AAD: __gmpz_set_ui (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+==24288==    by 0x10ADCD: generateRSAKeyPair (rsa.c:169)
+==24288==    by 0x10B8D5: create_keys (rsa.c:398)
+==24288==    by 0x10C5BB: main (rsa.c:659)
+==24288== 
+==24288== 48 bytes in 3 blocks are definitely lost in loss record 2 of 8
+==24288==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==24288==    by 0x48748D4: __gmp_default_allocate (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+==24288==    by 0x488616B: __gmpz_realloc (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+==24288==    by 0x488B539: __gmpz_set_str (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+==24288==    by 0x10B7F5: get_key (rsa.c:380)
+==24288==    by 0x10C630: main (rsa.c:669)
+==24288== 
+==24288== 384 bytes in 2 blocks are definitely lost in loss record 3 of 8
+==24288==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==24288==    by 0x48748D4: __gmp_default_allocate (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+==24288==    by 0x488616B: __gmpz_realloc (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+==24288==    by 0x488893B: __gmpz_set (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+==24288==    by 0x488DDDA: __gmpz_invert (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+==24288==    by 0x10AE40: generateRSAKeyPair (rsa.c:179)
+==24288==    by 0x10B8D5: create_keys (rsa.c:398)
+==24288==    by 0x10C5BB: main (rsa.c:659)
+==24288== 
+==24288== 472 bytes in 1 blocks are still reachable in loss record 4 of 8
+==24288==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==24288==    by 0x4973E6E: __fopen_internal (iofopen.c:65)
+==24288==    by 0x4973E6E: fopen@@GLIBC_2.2.5 (iofopen.c:86)
+==24288==    by 0x10C4E4: main (rsa.c:636)
+==24288== 
+==24288== 520 bytes in 1 blocks are definitely lost in loss record 5 of 8
+==24288==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==24288==    by 0x48748D4: __gmp_default_allocate (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+==24288==    by 0x488616B: __gmpz_realloc (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+==24288==    by 0x487CC33: __gmpz_add (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+==24288==    by 0x488DD75: __gmpz_invert (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+==24288==    by 0x10AE40: generateRSAKeyPair (rsa.c:179)
+==24288==    by 0x10B8D5: create_keys (rsa.c:398)
+==24288==    by 0x10C5BB: main (rsa.c:659)
+==24288== 
+==24288== 896 bytes in 3 blocks are definitely lost in loss record 6 of 8
+==24288==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==24288==    by 0x48748D4: __gmp_default_allocate (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+==24288==    by 0x488D4B1: __gmpz_mul (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+==24288==    by 0x10AD51: generateRSAKeyPair (rsa.c:154)
+==24288==    by 0x10B8D5: create_keys (rsa.c:398)
+==24288==    by 0x10C5BB: main (rsa.c:659)
+==24288== 
+==24288== 920 bytes in 3 blocks are definitely lost in loss record 7 of 8
+==24288==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==24288==    by 0x48748D4: __gmp_default_allocate (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+==24288==    by 0x488616B: __gmpz_realloc (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+==24288==    by 0x488B539: __gmpz_set_str (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+==24288==    by 0x10B7F5: get_key (rsa.c:380)
+==24288==    by 0x10C8D4: main (rsa.c:682)
+==24288== 
+==24288== 936 bytes in 3 blocks are definitely lost in loss record 8 of 8
+==24288==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==24288==    by 0x48748D4: __gmp_default_allocate (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+==24288==    by 0x488616B: __gmpz_realloc (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+==24288==    by 0x488B539: __gmpz_set_str (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+==24288==    by 0x10B78D: get_key (rsa.c:372)
+==24288==    by 0x10C630: main (rsa.c:669)
+==24288== 
+==24288== LEAK SUMMARY:
+==24288==    definitely lost: 3,728 bytes in 18 blocks
+==24288==    indirectly lost: 0 bytes in 0 blocks
+==24288==      possibly lost: 0 bytes in 0 blocks
+==24288==    still reachable: 472 bytes in 1 blocks
+==24288==         suppressed: 0 bytes in 0 blocks
+==24288== 
+==24288== For lists of detected and suppressed errors, rerun with: -s
+==24288== ERROR SUMMARY: 7 errors from 7 contexts (suppressed: 0 from 0)

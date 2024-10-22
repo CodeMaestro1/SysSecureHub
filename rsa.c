@@ -135,6 +135,7 @@ void generate_random_prime(mpz_t prime, unsigned long int bit_length, gmp_randst
     mpz_clear(rand_num);
 }
 
+//TODO: Memory leak here__3
 void generateRSAKeyPair(mpz_t n, mpz_t e, mpz_t d, unsigned long int key_length) {
     mpz_t p, q;
     mpz_inits(p, q, NULL);
@@ -226,16 +227,46 @@ void encrypt(mpz_t encrypted, char** message, mpz_t e, mpz_t n) {
     mpz_clear(mpz_message);
 }
 
+//TODO:Memory leak here__3
 void decrypt(char** decrypted_msg, mpz_t encrypted, mpz_t d, mpz_t n) {
     mpz_t decrypted;
     mpz_init(decrypted);
 
     mpz_powm(decrypted, encrypted, d, n);
 
-    *decrypted_msg = remove_padding(mpz_get_str(NULL, STR_BASE, decrypted));
+    // Convert decrypted number to string
+    char *decrypted_str = mpz_get_str(NULL, STR_BASE, decrypted);
+    if (decrypted_str == NULL) {
+        fprintf(stderr, "Error converting decrypted number to string\n");
+        mpz_clear(decrypted);
+        return;
+    }
 
-    *decrypted_msg = hex_stream_to_ascii(*decrypted_msg);
+    // Remove padding and convert to ASCII
+    char *unpadded_str = remove_padding(decrypted_str);
+    if (unpadded_str == NULL) {
+        fprintf(stderr, "Error removing padding\n");
+        free(decrypted_str);
+        mpz_clear(decrypted);
+        return;
+    }
 
+    *decrypted_msg = hex_stream_to_ascii(unpadded_str);
+    if (*decrypted_msg == NULL) {
+        fprintf(stderr, "Error converting hex stream to ASCII\n");
+        free(decrypted_str);
+        free(unpadded_str);
+        mpz_clear(decrypted);
+        return;
+    }
+
+    // Free the allocated strings
+    free(decrypted_str);
+    if (unpadded_str != decrypted_str) {
+        free(unpadded_str);
+    }
+
+    mpz_clear(decrypted);
 }
 
 void save_keys(mpz_t n, mpz_t e, mpz_t d, unsigned long int key_length) {
@@ -255,7 +286,18 @@ void save_keys(mpz_t n, mpz_t e, mpz_t d, unsigned long int key_length) {
         printf("Error opening public key file");
         return;
     }
-    fprintf(public_file, "%s\n%s\n", mpz_get_str(NULL, 0, n), mpz_get_str(NULL, 0, e));
+    char *n_str = mpz_get_str(NULL, 0, n);
+    char *e_str = mpz_get_str(NULL, 0, e);
+    if (n_str == NULL || e_str == NULL) {
+        printf("Error converting mpz_t to string");
+        free(n_str);
+        free(e_str);
+        fclose(public_file);
+        return;
+    }
+    fprintf(public_file, "%s\n%s\n", n_str, e_str);
+    free(n_str);
+    free(e_str);
     fclose(public_file);
 
     // Private key file 
@@ -264,12 +306,22 @@ void save_keys(mpz_t n, mpz_t e, mpz_t d, unsigned long int key_length) {
         printf("Error opening private key file");
         return;
     }
-    fprintf(private_file, "%s\n%s\n", mpz_get_str(NULL, 0, n), mpz_get_str(NULL, 0, d));
+    n_str = mpz_get_str(NULL, 0, n);
+    char *d_str = mpz_get_str(NULL, 0, d);
+    if (n_str == NULL || d_str == NULL) {
+        printf("Error converting mpz_t to string");
+        free(n_str);
+        free(d_str);
+        fclose(private_file);
+        return;
+    }
+    fprintf(private_file, "%s\n%s\n", n_str, d_str);
+    free(n_str);
+    free(d_str);
     fclose(private_file);
 }
 
 void get_key(char* key_filepath, mpz_t n, mpz_t key, long unsigned int* key_length) {
-
     const char* format_error = "The format of '%s' is not recognized.\n";
     int valid_format = 0;
 
@@ -317,8 +369,21 @@ void get_key(char* key_filepath, mpz_t n, mpz_t key, long unsigned int* key_leng
     n_str[strcspn(n_str, "\n")] = '\0';
     key_str[strcspn(key_str, "\n")] = '\0';
 
-    mpz_set_str(n, n_str, 10);
-    mpz_set_str(key, key_str, 10);    
+    if (mpz_set_str(n, n_str, 10) != 0) {
+        fprintf(stderr, "Error converting n_str to mpz_t\n");
+        fclose(file);
+        free(n_str);
+        free(key_str);
+        return;
+    }
+
+    if (mpz_set_str(key, key_str, 10) != 0) {
+        fprintf(stderr, "Error converting key_str to mpz_t\n");
+        fclose(file);
+        free(n_str);
+        free(key_str);
+        return;
+    }
 
     fclose(file);
     free(n_str);
@@ -365,9 +430,20 @@ int encryption_process(char* filepath_input, char* filepath_output, unsigned lon
         /* RSA Process */
         encrypt(encrypted, &message, e, n);
 
-        fprintf(outfile, "%s\n", mpz_get_str(NULL, STR_BASE, encrypted));
+        //TODO:Memory leak here
+        char *encrypted_str = mpz_get_str(NULL, STR_BASE, encrypted);
+        if (encrypted_str == NULL) {
+            fprintf(stderr, "Error converting encrypted number to string\n");
+            mpz_clear(encrypted);
+            free(message);
+            fclose(outfile);
+            return -1;
+        }
+        fprintf(outfile, "%s\n", encrypted_str);
+        
 
         // clear vars
+        free(encrypted_str); // Free the allocated string
         mpz_clear(encrypted);
         free(message);
     }
@@ -406,6 +482,15 @@ int decryption_process(char* filepath_input, char* filepath_output, mpz_t n, mpz
         }
 
         // put line in mpz var
+        //TODO:Memory leak here__2
+        if (mpz_set_str(encrypted, encrypted_str, STR_BASE) != 0) {
+            fprintf(stderr, "Error converting string to mpz_t\n");
+            mpz_clear(encrypted);
+            free(encrypted_str);
+            fclose(infile);
+            fclose(outfile);
+            return -1;
+        }
         mpz_set_str(encrypted, encrypted_str, STR_BASE);
 
         decrypt(&decrypted_msg, encrypted, d, n);
@@ -417,6 +502,7 @@ int decryption_process(char* filepath_input, char* filepath_output, mpz_t n, mpz
         free(decrypted_msg);
 
     }
+    free(encrypted_str);
     fclose(infile);
     fclose(outfile);
     return 0;
