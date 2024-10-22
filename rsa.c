@@ -398,6 +398,8 @@ void create_keys(unsigned long int key_length) {
     generateRSAKeyPair(n, e, d, key_length);
 
     save_keys(n, e, d, key_length);
+
+    mpz_clears(n, e, d, NULL);
 }
 
 int encryption_process(char* filepath_input, char* filepath_output, unsigned long int key_length, mpz_t n, mpz_t e) {
@@ -648,6 +650,9 @@ int main(int argc, char *argv[]) {
         struct timeval start, end;
         struct rusage usage_before, usage_after;
 
+        // Peak usage at the START of this process 
+        getrusage(RUSAGE_SELF, &usage_before);
+
         // Loop of diff key lengths
         printf("Measured for key lengths ");
         for (int i = 0; i < 3; i++) {
@@ -657,7 +662,6 @@ int main(int argc, char *argv[]) {
             printf("%lu ", key_length);
             // create keys
             create_keys(key_length); 
-
 
             // temp key files
             char public_filename[100];
@@ -670,10 +674,12 @@ int main(int argc, char *argv[]) {
 
             // encryption process
             gettimeofday(&start, NULL);
-            getrusage(RUSAGE_SELF, &usage_before);
             encryption_process(temp_input_file, temp_cipher_file, key_length, n, e);
             gettimeofday(&end, NULL);
             getrusage(RUSAGE_SELF, &usage_after);
+
+            mpz_clears(n, e, NULL);
+            mpz_init(n);
 
             double encryption_time = get_time_difference(start, end);
             long encryption_memory = get_memory_usage(usage_after) - get_memory_usage(usage_before);
@@ -683,10 +689,11 @@ int main(int argc, char *argv[]) {
 
             // decryption process
             gettimeofday(&start, NULL);
-            getrusage(RUSAGE_SELF, &usage_before);
             decryption_process(temp_cipher_file, temp_output_file, n, d);
             gettimeofday(&end, NULL);
             getrusage(RUSAGE_SELF, &usage_after);
+
+            mpz_clears(n, d, NULL);
 
             double decryption_time = get_time_difference(start, end);
             long decryption_memory = get_memory_usage(usage_after) - get_memory_usage(usage_before);
@@ -707,6 +714,8 @@ int main(int argc, char *argv[]) {
         if (remove(temp_output_file) != 0) { printf("Error deleting %s", temp_output_file); }
         printf("\n");
         test_mode = TEST_MODE_OFF;
+        fclose(perf_file);
+        // mpz_clears(n, e, d, NULL);
         
     }
 
