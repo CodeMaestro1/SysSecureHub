@@ -209,7 +209,15 @@ void encrypt(mpz_t encrypted, char** message, mpz_t e, mpz_t n) {
     // convert string to mpz
     // string_to_mpz(mpz_message, *message);
     *message = add_padding(*message);
-    mpz_set_str(mpz_message, *message, STR_BASE);
+
+    // Ensure message conversion succeeds
+    if (mpz_set_str(mpz_message, *message, STR_BASE) == -1) {
+        printf("Error converting message to mpz\n");
+        mpz_clear(mpz_message);
+        return;
+    }
+
+    //mpz_set_str(mpz_message, *message, STR_BASE);
 
     // encryption process
     mpz_powm(encrypted, mpz_message, e, n);
@@ -457,7 +465,7 @@ int analyze_args(int argc, char *argv[], char** input_path, char** output_path, 
                 break;
             case 'h':
                 print_help();
-                break; //prefer the break to get out of the loop
+                break;
             default:
                 printf("Invalid option\n");
                 return 1;
