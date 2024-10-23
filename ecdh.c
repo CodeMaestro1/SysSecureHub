@@ -42,16 +42,39 @@ void print_menu(){
 
 void getArgs(int argc, char *argv[]) {
     char c;
+    int o_provided = 0;
+    
     while ((c = getopt(argc, argv, "o:a:b:h")) != -1) {
         switch (c) {
         case 'o':
+            if (optarg == NULL || optarg[0] == '-') {
+                fprintf(stderr, "Option -o requires a valid argument\n");
+                exit(EXIT_FAILURE);
+            }
             nameFile = optarg;
+            o_provided = 1;
             break;
         case 'a':
+            if (!o_provided) {
+                fprintf(stderr, "Option -a requires -o to be specified\n");
+                exit(EXIT_FAILURE);
+            }
+            if (optarg == NULL || optarg[0] == '-') {
+                fprintf(stderr, "Option -a requires a valid argument\n");
+                exit(EXIT_FAILURE);
+            }
             int_to_byte_key(alice_private_key, atoi(optarg));
             alice_key_provided = 1;
             break;
         case 'b':
+            if (!o_provided) {
+                fprintf(stderr, "Option -b requires -o to be specified\n");
+                exit(EXIT_FAILURE);
+            }
+            if (optarg == NULL || optarg[0] == '-') {
+                fprintf(stderr, "Option -b requires a valid argument\n");
+                exit(EXIT_FAILURE);
+            }
             int_to_byte_key(bob_private_key, atoi(optarg));
             bob_key_provided = 1;
             break;
@@ -69,7 +92,7 @@ void file_handler(char *path) {
     FILE *fp = fopen(path, "w");
     if (fp == NULL) {
         fprintf(stderr, "Error opening file %s!\n", path);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     fprintf(fp, "Alice's Public key:\n");
@@ -110,7 +133,7 @@ int main(int argc, char *argv[]) {
     // init sodium
     if (sodium_init() < 0) {
         fprintf(stderr, "Error init\n");
-        return 1;
+        return EXIT_FAILURE;
     } else {
     
     getArgs(argc, argv);
@@ -129,7 +152,7 @@ int main(int argc, char *argv[]) {
 
     //Everything is done, let's wrte the output to the file
     file_handler(nameFile);
-    return 0;
+    return EXIT_SUCCESS;
 
 }
 }

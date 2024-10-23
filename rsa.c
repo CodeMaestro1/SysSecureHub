@@ -693,7 +693,7 @@ int main(int argc, char *argv[]) {
             mpz_init(n);
 
             double encryption_time = get_time_difference(start, end);
-            long encryption_memory = get_memory_usage(usage_after);// - get_memory_usage(usage_before);
+            long encryption_memory = get_memory_usage(usage_after);
 
             // get keys n, d
             get_key(private_filename, n, d, &key_length);
@@ -707,7 +707,7 @@ int main(int argc, char *argv[]) {
             mpz_clears(n, d, NULL);
 
             double decryption_time = get_time_difference(start, end);
-            long decryption_memory = get_memory_usage(usage_after); //- get_memory_usage(usage_before);
+            long decryption_memory = get_memory_usage(usage_after);
 
             // write measurements to file
             fprintf(perf_file, "Key Length: %ld bits\n", key_length);
