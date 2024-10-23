@@ -23,7 +23,6 @@ void int_to_byte_key(unsigned char *private_key, int number) {
 void handle_keys(unsigned char *private_key, unsigned char *public_key, int key_provided) {
     if (!key_provided) {
         crypto_box_keypair(public_key, private_key);
-        sodium_memzero(private_key, crypto_box_SECRETKEYBYTES);
     } else {
         crypto_scalarmult_base(public_key, private_key);
     }
@@ -132,7 +131,7 @@ void file_handler(char *path) {
 int main(int argc, char *argv[]) {
     // init sodium
     if (sodium_init() < 0) {
-        fprintf(stderr, "Error init\n");
+        fprintf(stderr, "Error initializing libsodium\n");
         return EXIT_FAILURE;
     } else {
     
@@ -152,6 +151,15 @@ int main(int argc, char *argv[]) {
 
     //Everything is done, let's wrte the output to the file
     file_handler(nameFile);
+
+    // Zero out sensitive data before freeing memory
+    sodium_memzero(alice_private_key, crypto_box_SECRETKEYBYTES);
+    sodium_memzero(alice_public_key, crypto_box_PUBLICKEYBYTES);
+    sodium_memzero(bob_private_key, crypto_box_SECRETKEYBYTES);
+    sodium_memzero(bob_public_key, crypto_box_PUBLICKEYBYTES);
+    sodium_memzero(alice_shared_secret, crypto_scalarmult_BYTES);
+    sodium_memzero(bob_shared_secret, crypto_scalarmult_BYTES);
+
     return EXIT_SUCCESS;
 
 }

@@ -13,6 +13,7 @@
 #define TEST_MODE_OFF 0
 #define TEST_MODE_ON 1
 #define TESTING_PHRASE_REPEATS 2000
+#define PUBLIC_KEY 65537
 
 int test_mode = TEST_MODE_OFF; // global var for testing 
 
@@ -166,7 +167,7 @@ void generateRSAKeyPair(mpz_t n, mpz_t e, mpz_t d, unsigned long int key_length)
     // Use common public key (e) 65537
     // assumes length > 17 (?)
     // for large lengths condition: e % lambda(n) != 0 is likely true 
-    mpz_set_ui(e, 65537);
+    mpz_set_ui(e, PUBLIC_KEY);
 
     // check if it's co-prime of lambda
     mpz_t gcd;
@@ -189,7 +190,7 @@ char* add_padding(char* str) {
     padded_str = malloc(strlen(str) + 2);
     if (padded_str == NULL) {
         printf("padded_str malloc str");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     padded_str[0] = PADDING_CHAR;
     strcpy(padded_str + 1, str);
@@ -217,8 +218,6 @@ void encrypt(mpz_t encrypted, char** message, mpz_t e, mpz_t n) {
         mpz_clear(mpz_message);
         return;
     }
-
-    //mpz_set_str(mpz_message, *message, STR_BASE);
 
     // encryption process
     mpz_powm(encrypted, mpz_message, e, n);
@@ -554,7 +553,7 @@ int analyze_args(int argc, char *argv[], char** input_path, char** output_path, 
                 break;
             case 'a':
                 if (optarg == NULL) {
-                    *output_path = "performance.txt";
+                    *output_path = "performance.txt"; // Default output file
                 } else {
                     *output_path = optarg;
                 }
@@ -589,6 +588,7 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "Invalid key length\n");
             return 1;
         }
+        
         /* Generate Keys */
         create_keys(key_length);
         printf("Saved a random key pair of %lu bits.\n", key_length);
@@ -609,7 +609,7 @@ int main(int argc, char *argv[]) {
     } else if (mode == 3) { 
         if (!input_path || !output_path || !key_path) {
             fprintf(stderr, "For decryption, -i, -o, and -k options are required.\n");
-            return 1;
+            return EXIT_FAILURE;
         }
         /* Decrypt */
         mpz_t n, d;
@@ -623,7 +623,7 @@ int main(int argc, char *argv[]) {
     else if (mode == 4) { 
         if (!output_path) {
             fprintf(stderr, "For performance analysis, -a option is required.\n");
-            return 1;
+            return EXIT_FAILURE;
         }
         // test mode on 
         test_mode = TEST_MODE_ON;
@@ -638,7 +638,7 @@ int main(int argc, char *argv[]) {
         FILE *file = fopen(temp_input_file, "w");
         if (file == NULL) {
             perror("Error opening file");
-            return 1; 
+            return EXIT_FAILURE; 
         }
         for (int i = 0; i < TESTING_PHRASE_REPEATS; i++) {
             fprintf(file, "%s", test);
@@ -649,7 +649,7 @@ int main(int argc, char *argv[]) {
         FILE *perf_file = fopen(output_path, "w");
         if (perf_file == NULL) {
             perror("Error opening file");
-            return 1; 
+            return EXIT_FAILURE; 
         }
 
         // key lengths array 
@@ -729,5 +729,5 @@ int main(int argc, char *argv[]) {
         
     }
 
-    return 0;
+    return EXIT_SUCCESS;
 }
