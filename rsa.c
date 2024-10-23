@@ -135,7 +135,7 @@ void generate_random_prime(mpz_t prime, unsigned long int bit_length, gmp_randst
     mpz_clear(rand_num);
 }
 
-//TODO: Memory leak here__3
+
 void generateRSAKeyPair(mpz_t n, mpz_t e, mpz_t d, unsigned long int key_length) {
     mpz_t p, q;
     mpz_inits(p, q, NULL);
@@ -227,7 +227,7 @@ void encrypt(mpz_t encrypted, char** message, mpz_t e, mpz_t n) {
     mpz_clear(mpz_message);
 }
 
-//TODO:Memory leak here__3
+
 void decrypt(char** decrypted_msg, mpz_t encrypted, mpz_t d, mpz_t n) {
     mpz_t decrypted;
     mpz_init(decrypted);
@@ -432,7 +432,7 @@ int encryption_process(char* filepath_input, char* filepath_output, unsigned lon
         /* RSA Process */
         encrypt(encrypted, &message, e, n);
 
-        //TODO:Memory leak here
+        
         char *encrypted_str = mpz_get_str(NULL, STR_BASE, encrypted);
         if (encrypted_str == NULL) {
             fprintf(stderr, "Error converting encrypted number to string\n");
@@ -455,58 +455,63 @@ int encryption_process(char* filepath_input, char* filepath_output, unsigned lon
 
 int decryption_process(char* filepath_input, char* filepath_output, mpz_t n, mpz_t d) {
     /* init vars */
-    // message vars (in between)
     mpz_t encrypted;
-    char* decrypted_msg;
-    // init encrypted str (for reading lines)
+    char* decrypted_msg = NULL;
     char* encrypted_str = NULL;
     size_t temp = 0;
 
     // open in file
     FILE *infile = fopen(filepath_input, "r"); 
     if (infile == NULL) {
-        printf("Failed to open file");
+        perror("Failed to open input file");
         return -1;
     }
+
     // open out file
     FILE *outfile = fopen(filepath_output, "w"); 
     if (outfile == NULL) {
-        printf("Failed to open file");
+        perror("Failed to open output file");
+        fclose(infile);
         return -1;
     }
 
+    // Initialize mpz_t variable
+    mpz_init(encrypted);
+
     // Read each line from the file using getline
     while (getline(&encrypted_str, &temp, infile) != -1) {
-        mpz_init(encrypted);
         long enc_len = strlen(encrypted_str);
-        if (enc_len > 0 && encrypted_str[enc_len - 1] == '\n') { // if might be redundant 
+        if (enc_len > 0 && encrypted_str[enc_len - 1] == '\n') {
             encrypted_str[enc_len - 1] = '\0';  // replace '\n' with '\0'
         }
 
-        // put line in mpz var
-        //TODO:Memory leak here__2
+        // Convert string to mpz_t
         if (mpz_set_str(encrypted, encrypted_str, STR_BASE) != 0) {
             fprintf(stderr, "Error converting string to mpz_t\n");
-            mpz_clear(encrypted);
             free(encrypted_str);
             fclose(infile);
             fclose(outfile);
+            mpz_clear(encrypted);
             return -1;
         }
-        mpz_set_str(encrypted, encrypted_str, STR_BASE);
 
+        // Decrypt the message
         decrypt(&decrypted_msg, encrypted, d, n);
 
+        // Write decrypted message to output file
         fprintf(outfile, "%s", decrypted_msg);
 
-        // clear vars
-        mpz_clear(encrypted);
+        // Free decrypted message
         free(decrypted_msg);
-
+        decrypted_msg = NULL; // Reset pointer to avoid dangling pointer
     }
+
+    // Clean up
     free(encrypted_str);
     fclose(infile);
     fclose(outfile);
+    mpz_clear(encrypted);
+
     return 0;
 }
 
@@ -548,7 +553,11 @@ int analyze_args(int argc, char *argv[], char** input_path, char** output_path, 
                 *mode = 2; // Encryption mode
                 break;
             case 'a':
-                *output_path = optarg;
+                if (optarg == NULL) {
+                    *output_path = "performance.txt";
+                } else {
+                    *output_path = optarg;
+                }
                 *mode = 4; // Performance analysis mode
                 break;
             case 'h':
@@ -715,7 +724,6 @@ int main(int argc, char *argv[]) {
         printf("\n");
         test_mode = TEST_MODE_OFF;
         fclose(perf_file);
-        // mpz_clears(n, e, d, NULL);
         
     }
 

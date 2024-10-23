@@ -1,0 +1,778 @@
+desc: (none)
+cmd: ./rsa_assign_1 -a newwwwFile.txt
+time_unit: i
+#-----------
+snapshot=0
+#-----------
+time=0
+mem_heap_B=0
+mem_heap_extra_B=0
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=1
+#-----------
+time=325343588
+mem_heap_B=11434
+mem_heap_extra_B=158
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=2
+#-----------
+time=559643564
+mem_heap_B=11434
+mem_heap_extra_B=158
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=3
+#-----------
+time=819971229
+mem_heap_B=11434
+mem_heap_extra_B=158
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=4
+#-----------
+time=950168504
+mem_heap_B=11298
+mem_heap_extra_B=126
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=5
+#-----------
+time=1203795916
+mem_heap_B=8632
+mem_heap_extra_B=80
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=6
+#-----------
+time=1678124038
+mem_heap_B=8512
+mem_heap_extra_B=96
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=7
+#-----------
+time=1933045737
+mem_heap_B=16298
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=8
+#-----------
+time=2298144295
+mem_heap_B=16298
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=detailed
+n5: 16298 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 13312 0x496A1A4: _IO_file_doallocate (filedoalloc.c:101)
+  n3: 13312 0x497A513: _IO_doallocbuf (genops.c:347)
+   n1: 9216 0x4977F7F: _IO_file_overflow@@GLIBC_2.2.5 (fileops.c:745)
+    n1: 9216 0x4978A9E: _IO_new_file_xsputn (fileops.c:1244)
+     n3: 9216 0x4978A9E: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1197)
+      n1: 5120 0x4945CB8: __printf_buffer_flush_to_file (printf_buffer_to_file.c:59)
+       n1: 5120 0x4945CB8: __printf_buffer_to_file_done (printf_buffer_to_file.c:120)
+        n2: 5120 0x4950732: __vfprintf_internal (vfprintf-internal.c:1545)
+         n1: 4096 0x49445EB: fprintf (fprintf.c:32)
+          n0: 4096 0x10CBD1: main (rsa.c:702)
+         n1: 1024 0x49451A2: printf (printf.c:33)
+          n0: 1024 0x10C572: main (rsa.c:657)
+      n2: 4096 0x496B2EB: fputs (iofputs.c:38)
+       n1: 4096 0x10BC9F: decryption_process (rsa.c:500)
+        n0: 4096 0x10C95C: main (rsa.c:692)
+       n0: 0 in 1 place, below massif's threshold (1.00%)
+      n0: 0 in 1 place, below massif's threshold (1.00%)
+   n1: 4096 0x4977873: _IO_file_underflow@@GLIBC_2.2.5 (fileops.c:486)
+    n2: 4096 0x496BDFF: getdelim (iogetdelim.c:77)
+     n1: 4096 0x10BCCE: decryption_process (rsa.c:479)
+      n0: 4096 0x10C95C: main (rsa.c:692)
+     n0: 0 in 1 place, below massif's threshold (1.00%)
+   n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 1416 0x496AE6E: __fopen_internal (iofopen.c:65)
+  n4: 1416 0x496AE6E: fopen@@GLIBC_2.2.5 (iofopen.c:86)
+   n1: 472 0x10BB2C: decryption_process (rsa.c:466)
+    n0: 472 0x10C95C: main (rsa.c:692)
+   n1: 472 0x10BB6B: decryption_process (rsa.c:472)
+    n0: 472 0x10C95C: main (rsa.c:692)
+   n0: 472 0x10C502: main (rsa.c:638)
+   n0: 0 in 6 places, all below massif's threshold (1.00%)
+ n2: 1056 0x486B8D4: __gmp_default_allocate (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+  n3: 1056 0x487D16B: __gmpz_realloc (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+   n4: 800 0x4882539: __gmpz_set_str (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+    n2: 272 0x10B78D: get_key (rsa.c:372)
+     n0: 272 0x10C924: main (rsa.c:688)
+     n0: 0 in 1 place, below massif's threshold (1.00%)
+    n2: 264 0x10B7F5: get_key (rsa.c:380)
+     n0: 264 0x10C924: main (rsa.c:688)
+     n0: 0 in 1 place, below massif's threshold (1.00%)
+    n1: 264 0x10BBFB: decryption_process (rsa.c:488)
+     n0: 264 0x10C95C: main (rsa.c:692)
+    n0: 0 in 1 place, below massif's threshold (1.00%)
+   n2: 256 0x488666E: __gmpz_powm (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+    n1: 256 0x10B06B: decrypt (rsa.c:235)
+     n1: 256 0x10BC8C: decryption_process (rsa.c:498)
+      n0: 256 0x10C95C: main (rsa.c:692)
+    n0: 0 in 1 place, below massif's threshold (1.00%)
+   n0: 0 in 9 places, all below massif's threshold (1.00%)
+  n0: 0 in 4 places, all below massif's threshold (1.00%)
+ n2: 514 0x496BC41: getdelim (iogetdelim.c:107)
+  n1: 514 0x10BCCE: decryption_process (rsa.c:479)
+   n0: 514 0x10C95C: main (rsa.c:692)
+  n0: 0 in 2 places, all below massif's threshold (1.00%)
+ n0: 0 in 6 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=9
+#-----------
+time=2585007524
+mem_heap_B=16298
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=10
+#-----------
+time=2767557040
+mem_heap_B=16298
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=11
+#-----------
+time=3028341882
+mem_heap_B=16298
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=12
+#-----------
+time=3184812749
+mem_heap_B=16298
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=13
+#-----------
+time=3393440502
+mem_heap_B=16298
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=14
+#-----------
+time=3549911388
+mem_heap_B=16298
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=15
+#-----------
+time=3836774686
+mem_heap_B=16298
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=16
+#-----------
+time=4019324157
+mem_heap_B=16298
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=17
+#-----------
+time=4280108918
+mem_heap_B=16298
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=18
+#-----------
+time=4645207384
+mem_heap_B=16298
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=detailed
+n5: 16298 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 13312 0x496A1A4: _IO_file_doallocate (filedoalloc.c:101)
+  n3: 13312 0x497A513: _IO_doallocbuf (genops.c:347)
+   n1: 9216 0x4977F7F: _IO_file_overflow@@GLIBC_2.2.5 (fileops.c:745)
+    n1: 9216 0x4978A9E: _IO_new_file_xsputn (fileops.c:1244)
+     n3: 9216 0x4978A9E: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1197)
+      n1: 5120 0x4945CB8: __printf_buffer_flush_to_file (printf_buffer_to_file.c:59)
+       n1: 5120 0x4945CB8: __printf_buffer_to_file_done (printf_buffer_to_file.c:120)
+        n2: 5120 0x4950732: __vfprintf_internal (vfprintf-internal.c:1545)
+         n1: 4096 0x49445EB: fprintf (fprintf.c:32)
+          n0: 4096 0x10CBD1: main (rsa.c:702)
+         n1: 1024 0x49451A2: printf (printf.c:33)
+          n0: 1024 0x10C572: main (rsa.c:657)
+      n2: 4096 0x496B2EB: fputs (iofputs.c:38)
+       n1: 4096 0x10BC9F: decryption_process (rsa.c:500)
+        n0: 4096 0x10C95C: main (rsa.c:692)
+       n0: 0 in 1 place, below massif's threshold (1.00%)
+      n0: 0 in 1 place, below massif's threshold (1.00%)
+   n1: 4096 0x4977873: _IO_file_underflow@@GLIBC_2.2.5 (fileops.c:486)
+    n2: 4096 0x496BDFF: getdelim (iogetdelim.c:77)
+     n1: 4096 0x10BCCE: decryption_process (rsa.c:479)
+      n0: 4096 0x10C95C: main (rsa.c:692)
+     n0: 0 in 1 place, below massif's threshold (1.00%)
+   n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 1416 0x496AE6E: __fopen_internal (iofopen.c:65)
+  n4: 1416 0x496AE6E: fopen@@GLIBC_2.2.5 (iofopen.c:86)
+   n1: 472 0x10BB2C: decryption_process (rsa.c:466)
+    n0: 472 0x10C95C: main (rsa.c:692)
+   n1: 472 0x10BB6B: decryption_process (rsa.c:472)
+    n0: 472 0x10C95C: main (rsa.c:692)
+   n0: 472 0x10C502: main (rsa.c:638)
+   n0: 0 in 6 places, all below massif's threshold (1.00%)
+ n2: 1056 0x486B8D4: __gmp_default_allocate (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+  n3: 1056 0x487D16B: __gmpz_realloc (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+   n4: 800 0x4882539: __gmpz_set_str (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+    n2: 272 0x10B78D: get_key (rsa.c:372)
+     n0: 272 0x10C924: main (rsa.c:688)
+     n0: 0 in 1 place, below massif's threshold (1.00%)
+    n2: 264 0x10B7F5: get_key (rsa.c:380)
+     n0: 264 0x10C924: main (rsa.c:688)
+     n0: 0 in 1 place, below massif's threshold (1.00%)
+    n1: 264 0x10BBFB: decryption_process (rsa.c:488)
+     n0: 264 0x10C95C: main (rsa.c:692)
+    n0: 0 in 1 place, below massif's threshold (1.00%)
+   n2: 256 0x488666E: __gmpz_powm (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+    n1: 256 0x10B06B: decrypt (rsa.c:235)
+     n1: 256 0x10BC8C: decryption_process (rsa.c:498)
+      n0: 256 0x10C95C: main (rsa.c:692)
+    n0: 0 in 1 place, below massif's threshold (1.00%)
+   n0: 0 in 9 places, all below massif's threshold (1.00%)
+  n0: 0 in 4 places, all below massif's threshold (1.00%)
+ n2: 514 0x496BC41: getdelim (iogetdelim.c:107)
+  n1: 514 0x10BCCE: decryption_process (rsa.c:479)
+   n0: 514 0x10C95C: main (rsa.c:692)
+  n0: 0 in 2 places, all below massif's threshold (1.00%)
+ n0: 0 in 6 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=19
+#-----------
+time=4801682480
+mem_heap_B=16210
+mem_heap_extra_B=158
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=20
+#-----------
+time=6931531311
+mem_heap_B=188774
+mem_heap_extra_B=114
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=21
+#-----------
+time=7021989106
+mem_heap_B=191262
+mem_heap_extra_B=122
+mem_stacks_B=0
+heap_tree=peak
+n3: 191262 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n3: 185670 0x486B8D4: __gmp_default_allocate (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+  n3: 180142 0x486C10D: __gmp_tmp_reentrant_alloc (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+   n1: 116342 0x4889E64: ??? (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+    n1: 116342 0x10AC35: generate_random_prime (rsa.c:131)
+     n1: 116342 0x10ACFA: generateRSAKeyPair (rsa.c:149)
+      n1: 116342 0x10B8D5: create_keys (rsa.c:398)
+       n0: 116342 0x10C5ED: main (rsa.c:664)
+   n1: 63800 0x4889C06: ??? (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+    n1: 63800 0x10AC35: generate_random_prime (rsa.c:131)
+     n1: 63800 0x10ACFA: generateRSAKeyPair (rsa.c:149)
+      n1: 63800 0x10B8D5: create_keys (rsa.c:398)
+       n0: 63800 0x10C5ED: main (rsa.c:664)
+   n0: 0 in 2 places, all below massif's threshold (1.00%)
+  n1: 5008 0x48C59B8: __gmp_randinit_mt_noseed (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+   n2: 5008 0x48C5A34: __gmp_randinit_mt (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+    n1: 2504 0x10ACD5: generateRSAKeyPair (rsa.c:145)
+     n1: 2504 0x10B8D5: create_keys (rsa.c:398)
+      n0: 2504 0x10C5ED: main (rsa.c:664)
+    n1: 2504 0x4889893: __gmpz_millerrabin (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+     n1: 2504 0x4889B75: ??? (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+      n2: 2504 0x10AC35: generate_random_prime (rsa.c:131)
+       n1: 2504 0x10ACFA: generateRSAKeyPair (rsa.c:149)
+        n1: 2504 0x10B8D5: create_keys (rsa.c:398)
+         n0: 2504 0x10C5ED: main (rsa.c:664)
+       n0: 0 in 1 place, below massif's threshold (1.00%)
+  n0: 520 in 3 places, all below massif's threshold (1.00%)
+ n1: 5120 0x496A1A4: _IO_file_doallocate (filedoalloc.c:101)
+  n2: 5120 0x497A513: _IO_doallocbuf (genops.c:347)
+   n1: 5120 0x4977F7F: _IO_file_overflow@@GLIBC_2.2.5 (fileops.c:745)
+    n1: 5120 0x4978A9E: _IO_new_file_xsputn (fileops.c:1244)
+     n2: 5120 0x4978A9E: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1197)
+      n1: 5120 0x4945CB8: __printf_buffer_flush_to_file (printf_buffer_to_file.c:59)
+       n1: 5120 0x4945CB8: __printf_buffer_to_file_done (printf_buffer_to_file.c:120)
+        n2: 5120 0x4950732: __vfprintf_internal (vfprintf-internal.c:1545)
+         n1: 4096 0x49445EB: fprintf (fprintf.c:32)
+          n0: 4096 0x10CBD1: main (rsa.c:702)
+         n0: 1024 in 1 place, below massif's threshold (1.00%)
+      n0: 0 in 2 places, all below massif's threshold (1.00%)
+   n0: 0 in 2 places, all below massif's threshold (1.00%)
+ n0: 472 in 8 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=22
+#-----------
+time=7219760274
+mem_heap_B=189038
+mem_heap_extra_B=130
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=23
+#-----------
+time=7535600804
+mem_heap_B=13218
+mem_heap_extra_B=142
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=24
+#-----------
+time=7711168770
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=25
+#-----------
+time=8062256997
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=26
+#-----------
+time=8237830104
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=27
+#-----------
+time=8588886907
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=28
+#-----------
+time=8764427626
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=29
+#-----------
+time=9115511241
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=30
+#-----------
+time=9466568001
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=31
+#-----------
+time=9817662170
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=32
+#-----------
+time=10168760179
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=33
+#-----------
+time=10344327866
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=34
+#-----------
+time=10695416123
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=35
+#-----------
+time=10870989431
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=36
+#-----------
+time=11222046238
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=37
+#-----------
+time=11397586759
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=detailed
+n5: 17314 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 13312 0x496A1A4: _IO_file_doallocate (filedoalloc.c:101)
+  n3: 13312 0x497A513: _IO_doallocbuf (genops.c:347)
+   n1: 9216 0x4977F7F: _IO_file_overflow@@GLIBC_2.2.5 (fileops.c:745)
+    n1: 9216 0x4978A9E: _IO_new_file_xsputn (fileops.c:1244)
+     n3: 9216 0x4978A9E: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1197)
+      n1: 5120 0x4945CB8: __printf_buffer_flush_to_file (printf_buffer_to_file.c:59)
+       n1: 5120 0x4945CB8: __printf_buffer_to_file_done (printf_buffer_to_file.c:120)
+        n2: 5120 0x4950732: __vfprintf_internal (vfprintf-internal.c:1545)
+         n1: 4096 0x49445EB: fprintf (fprintf.c:32)
+          n0: 4096 0x10CBD1: main (rsa.c:702)
+         n1: 1024 0x49451A2: printf (printf.c:33)
+          n0: 1024 0x10C572: main (rsa.c:657)
+      n2: 4096 0x496B2EB: fputs (iofputs.c:38)
+       n1: 4096 0x10BC9F: decryption_process (rsa.c:500)
+        n0: 4096 0x10C95C: main (rsa.c:692)
+       n0: 0 in 1 place, below massif's threshold (1.00%)
+      n0: 0 in 1 place, below massif's threshold (1.00%)
+   n1: 4096 0x4977873: _IO_file_underflow@@GLIBC_2.2.5 (fileops.c:486)
+    n2: 4096 0x496BDFF: getdelim (iogetdelim.c:77)
+     n1: 4096 0x10BCCE: decryption_process (rsa.c:479)
+      n0: 4096 0x10C95C: main (rsa.c:692)
+     n0: 0 in 1 place, below massif's threshold (1.00%)
+   n0: 0 in 1 place, below massif's threshold (1.00%)
+ n2: 1560 0x486B8D4: __gmp_default_allocate (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+  n2: 1560 0x487D16B: __gmpz_realloc (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+   n4: 1560 0x4882539: __gmpz_set_str (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+    n2: 520 0x10B78D: get_key (rsa.c:372)
+     n0: 520 0x10C924: main (rsa.c:688)
+     n0: 0 in 1 place, below massif's threshold (1.00%)
+    n2: 520 0x10B7F5: get_key (rsa.c:380)
+     n0: 520 0x10C924: main (rsa.c:688)
+     n0: 0 in 1 place, below massif's threshold (1.00%)
+    n1: 520 0x10BBFB: decryption_process (rsa.c:488)
+     n0: 520 0x10C95C: main (rsa.c:692)
+    n0: 0 in 1 place, below massif's threshold (1.00%)
+   n0: 0 in 11 places, all below massif's threshold (1.00%)
+  n0: 0 in 4 places, all below massif's threshold (1.00%)
+ n1: 1416 0x496AE6E: __fopen_internal (iofopen.c:65)
+  n4: 1416 0x496AE6E: fopen@@GLIBC_2.2.5 (iofopen.c:86)
+   n1: 472 0x10BB2C: decryption_process (rsa.c:466)
+    n0: 472 0x10C95C: main (rsa.c:692)
+   n1: 472 0x10BB6B: decryption_process (rsa.c:472)
+    n0: 472 0x10C95C: main (rsa.c:692)
+   n0: 472 0x10C502: main (rsa.c:638)
+   n0: 0 in 6 places, all below massif's threshold (1.00%)
+ n2: 1026 0x496BC41: getdelim (iogetdelim.c:107)
+  n1: 1026 0x10BCCE: decryption_process (rsa.c:479)
+   n0: 1026 0x10C95C: main (rsa.c:692)
+  n0: 0 in 2 places, all below massif's threshold (1.00%)
+ n0: 0 in 6 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=38
+#-----------
+time=11748670347
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=39
+#-----------
+time=12099727139
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=40
+#-----------
+time=12450821510
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=41
+#-----------
+time=12801919324
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=42
+#-----------
+time=12977487214
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=43
+#-----------
+time=13328575468
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=44
+#-----------
+time=13504148580
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=45
+#-----------
+time=13855205597
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=46
+#-----------
+time=14030746118
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=47
+#-----------
+time=14381829722
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=48
+#-----------
+time=14732886515
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=49
+#-----------
+time=15083980900
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=50
+#-----------
+time=15259530896
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=51
+#-----------
+time=15435078714
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=52
+#-----------
+time=15610646408
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=53
+#-----------
+time=15786195171
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=54
+#-----------
+time=15961734646
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=55
+#-----------
+time=16137307986
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=56
+#-----------
+time=16312837749
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=57
+#-----------
+time=16488365007
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=58
+#-----------
+time=16663905531
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=detailed
+n5: 17314 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 13312 0x496A1A4: _IO_file_doallocate (filedoalloc.c:101)
+  n3: 13312 0x497A513: _IO_doallocbuf (genops.c:347)
+   n1: 9216 0x4977F7F: _IO_file_overflow@@GLIBC_2.2.5 (fileops.c:745)
+    n1: 9216 0x4978A9E: _IO_new_file_xsputn (fileops.c:1244)
+     n3: 9216 0x4978A9E: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1197)
+      n1: 5120 0x4945CB8: __printf_buffer_flush_to_file (printf_buffer_to_file.c:59)
+       n1: 5120 0x4945CB8: __printf_buffer_to_file_done (printf_buffer_to_file.c:120)
+        n2: 5120 0x4950732: __vfprintf_internal (vfprintf-internal.c:1545)
+         n1: 4096 0x49445EB: fprintf (fprintf.c:32)
+          n0: 4096 0x10CBD1: main (rsa.c:702)
+         n1: 1024 0x49451A2: printf (printf.c:33)
+          n0: 1024 0x10C572: main (rsa.c:657)
+      n2: 4096 0x496B2EB: fputs (iofputs.c:38)
+       n1: 4096 0x10BC9F: decryption_process (rsa.c:500)
+        n0: 4096 0x10C95C: main (rsa.c:692)
+       n0: 0 in 1 place, below massif's threshold (1.00%)
+      n0: 0 in 1 place, below massif's threshold (1.00%)
+   n1: 4096 0x4977873: _IO_file_underflow@@GLIBC_2.2.5 (fileops.c:486)
+    n2: 4096 0x496BDFF: getdelim (iogetdelim.c:77)
+     n1: 4096 0x10BCCE: decryption_process (rsa.c:479)
+      n0: 4096 0x10C95C: main (rsa.c:692)
+     n0: 0 in 1 place, below massif's threshold (1.00%)
+   n0: 0 in 1 place, below massif's threshold (1.00%)
+ n2: 1560 0x486B8D4: __gmp_default_allocate (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+  n2: 1560 0x487D16B: __gmpz_realloc (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+   n4: 1560 0x4882539: __gmpz_set_str (in /usr/lib/x86_64-linux-gnu/libgmp.so.10.5.0)
+    n2: 520 0x10B78D: get_key (rsa.c:372)
+     n0: 520 0x10C924: main (rsa.c:688)
+     n0: 0 in 1 place, below massif's threshold (1.00%)
+    n2: 520 0x10B7F5: get_key (rsa.c:380)
+     n0: 520 0x10C924: main (rsa.c:688)
+     n0: 0 in 1 place, below massif's threshold (1.00%)
+    n1: 520 0x10BBFB: decryption_process (rsa.c:488)
+     n0: 520 0x10C95C: main (rsa.c:692)
+    n0: 0 in 1 place, below massif's threshold (1.00%)
+   n0: 0 in 11 places, all below massif's threshold (1.00%)
+  n0: 0 in 4 places, all below massif's threshold (1.00%)
+ n1: 1416 0x496AE6E: __fopen_internal (iofopen.c:65)
+  n4: 1416 0x496AE6E: fopen@@GLIBC_2.2.5 (iofopen.c:86)
+   n1: 472 0x10BB2C: decryption_process (rsa.c:466)
+    n0: 472 0x10C95C: main (rsa.c:692)
+   n1: 472 0x10BB6B: decryption_process (rsa.c:472)
+    n0: 472 0x10C95C: main (rsa.c:692)
+   n0: 472 0x10C502: main (rsa.c:638)
+   n0: 0 in 6 places, all below massif's threshold (1.00%)
+ n2: 1026 0x496BC41: getdelim (iogetdelim.c:107)
+  n1: 1026 0x10BCCE: decryption_process (rsa.c:479)
+   n0: 1026 0x10C95C: main (rsa.c:692)
+  n0: 0 in 2 places, all below massif's threshold (1.00%)
+ n0: 0 in 6 places, all below massif's threshold (1.00%)
+#-----------
+snapshot=59
+#-----------
+time=16839450818
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=60
+#-----------
+time=17014988933
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=61
+#-----------
+time=17190516831
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=62
+#-----------
+time=17366045713
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=63
+#-----------
+time=17541578560
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=64
+#-----------
+time=17717137958
+mem_heap_B=17314
+mem_heap_extra_B=150
+mem_stacks_B=0
+heap_tree=empty
