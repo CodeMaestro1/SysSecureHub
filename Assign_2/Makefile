@@ -1,4 +1,4 @@
-all: logger acmonitor test_aclog akis_test
+all: logger acmonitor test_aclog
 
 
 logger: logger.c
@@ -20,6 +20,5 @@ clean:
     rm -rf logger.so
     rm -rf test_aclog
     rm -rf acmonitor
-    rm -rf akis_test
     find . -type f -name 'file_*' -not -name '*.log' -exec rm -f {} + ##Exclude log files from the deletion
 
