@@ -2,81 +2,72 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <unistd.h>
 
-#define OWNERSHIP_PERMISSIONS 0700  // Owner: read, write, execute
-#define GROUP_PERMISSIONS 0070      // Group: read, write, execute
-#define OTHERS_PERMISSIONS 0007     // Others: read, write, execute
-#define PUBLIC_PERMISSIONS 0777     // Owner, Group, Others: read, write, execute
+#define GENERAL_PERMISSIONS 0777          // Full permissions for owner, group, and others
+#define OWNER_GROUP_PERMISSIONS 0660      // Owner and group have read/write access
+#define OTHERS_PERMISSIONS 0007           // Only others have execute permissions
+#define BUFFER_SIZE 100
 
+// Set file permissions and handle errors
 void set_permissions(const char *filename, int permissions) {
     if (chmod(filename, permissions) == -1) {
-        perror("Error changing permissions");
+        fprintf(stderr, "Error changing permissions for %s: %s\n", filename, strerror(errno));
     }
 }
 
-void simulate_user_access(const char *filename, int permission_type) {
+// Open and handle file operations with read or write modes
+void handle_file_access(const char *filename, const char *mode) {
+    FILE *file = fopen(filename, mode);
+    if (!file) {
+        fprintf(stderr, "Error opening file %s with mode %s: %s\n", filename, mode, strerror(errno));
+        return;
+    }
+
+    char buffer[BUFFER_SIZE] = "Test data";  // Test data to write
+    if (strcmp(mode, "r") == 0) {
+        memset(buffer, 0, sizeof(buffer));  // Clear buffer before reading
+        fread(buffer, 1, sizeof(buffer) - 1, file);
+    } else {
+        fwrite(buffer, 1, strlen(buffer), file);
+    }
+
+    fclose(file);
+}
+
+// Simulate user access based on iteration index
+void simulate_user_access(const char *filename, int permission_type, int mode_index) {
     set_permissions(filename, permission_type);
-    
-    for (int i = 0; i < 10; i++) {
-        FILE *file = NULL;
-        char buffer[100] = "Test data";
-        
-        if (i < 2 || (i >= 8 && i < 10)) {
-            file = fopen(filename, "r");
-            if (file == NULL) {
-                perror("Error opening file for reading");
-                continue;
-            }
-            fread(buffer, 1, sizeof(buffer), file);
-        } 
-        else if (i >= 2 && i < 5) {
-            file = fopen(filename, "w");
-            if (file == NULL) {
-                perror("Error opening file for writing");
-                continue;
-            }
-            fwrite(buffer, 1, strlen(buffer), file);
-        } 
-        else if (i >= 5 && i < 8) {
-            file = fopen(filename, "a");
-            if (file == NULL) {
-                perror("Error opening file for appending");
-                continue;
-            }
-            fwrite(buffer, 1, strlen(buffer), file);
-        }
-        
-        if (file != NULL) {
-            fclose(file);
-        }
+
+    if (mode_index == 0) {
+        handle_file_access(filename, "r");
+    } else if (mode_index == 1) {
+        handle_file_access(filename, "w");
     }
 }
 
 int main() {
+    const char *filenames[10] = { 
+        "file_0", "file_1", "file_2", "file_3", "file_4",
+        "file_5", "file_6", "file_7", "file_8", "file_9"
+    };
 
-	int i;
-    size_t bytes;
-    FILE *file;
-    char filenames[10][7] = {"file_0", "file_1", 
-            "file_2", "file_3", "file_4",
-            "file_5", "file_6", "file_7",         
-            "file_8", "file_9"};
-
-    // Create files and set permissions
-    for (i = 0; i < 10; i++) {
-        file = fopen(filenames[i], "w+");
-        if (file == NULL) {
-            printf("fopen error for %s\n", filenames[i]);
-        } else {
-            bytes = fwrite(filenames[i], strlen(filenames[i]), 1, file);
-            fclose(file);
-
-			int permissions = 	(i < 2) ? PUBLIC_PERMISSIONS :
-                        	(i < 5) ? OWNERSHIP_PERMISSIONS :
-                        	(i < 8) ? GROUP_PERMISSIONS : OTHERS_PERMISSIONS;
-
-            simulate_user_access(filenames[i], permissions);
+    // Create files and assign appropriate permissions
+    for (int i = 0; i < 10; i++) {
+        FILE *file = fopen(filenames[i], "w+");
+        if (!file) {
+            fprintf(stderr, "Failed to create %s: %s\n", filenames[i], strerror(errno));
+            continue;
         }
+        
+        fwrite(filenames[i], strlen(filenames[i]), 1, file);
+        fclose(file);
+
+        int permissions = (i < 3) ? GENERAL_PERMISSIONS :
+                          (i <= 6) ? OWNER_GROUP_PERMISSIONS : OTHERS_PERMISSIONS;
+
+        simulate_user_access(filenames[i], permissions, i % 2);  // Alternate between read and write
     }
-	return 0;
-    }
+
+    return 0;
+}
