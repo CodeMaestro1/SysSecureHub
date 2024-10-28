@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <openssl/evp.h>
 #include <errno.h>
+#include <limits.h>
 
 #define DATETIME_SIZE 50
 #define BUFFER_SIZE 1024
