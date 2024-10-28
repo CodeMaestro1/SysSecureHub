@@ -123,7 +123,7 @@ char* get_file_fingerprint(const char *path) {
 
 FILE *fopen(const char *path, const char *mode) 
 {
-	printf("In my fopen\n");
+	//printf("In my fopen\n");
 	int file_exists = (access(path, F_OK) == 0); // get file_exists before opening file 
 	
 	/* normal fopen file */
@@ -133,7 +133,7 @@ FILE *fopen(const char *path, const char *mode)
 	if (!original_fopen_ret) {
 		if (errno == EACCES) {
 			action_denied = 1;
-			printf("EEEEEEEEE");
+			printf("Access denied\n");
 		} else { // other error
 			printf("Error opening file %s", path);
 			return NULL;
@@ -203,7 +203,7 @@ FILE *fopen(const char *path, const char *mode)
 
 size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) 
 {
-	printf("In my fwrite\n");
+	//printf("In my fwrite\n");
 
 	size_t original_fwrite_ret;
 	size_t (*original_fwrite)(const void*, size_t, size_t, FILE*);

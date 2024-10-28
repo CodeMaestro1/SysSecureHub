@@ -22,7 +22,6 @@ void check() {
 	scanf("%d", &temp);
 }
 
-
 struct log_entry {
 
 	int uid; /* user id (positive integer) */
@@ -72,8 +71,6 @@ int get_next_entry(FILE *log, struct log_entry* entry) {
 	strptime(time_str, "%I:%M%p", &tmp);
 	entry->time = timegm(&tmp);
 
-	// entry->date = 0;
-	// entry->time = 0;
 	return 0;
 }
 
@@ -114,9 +111,7 @@ void list_unauthorized_accesses(FILE *log)
     }
 
 	while (get_next_entry(log, &entry) == 0) {
-		// printf("%d %s %d %d %d %d %s\n",
-		// entry.uid, entry.file, entry.date, entry.time,
-		// entry.access_type, entry.action_denied, entry.fingerprint);
+
 		if (entry.action_denied == 1) {
 			int uid = entry.uid;
 			int uid_idx = find_uid(user_index, uid);
@@ -150,13 +145,6 @@ void list_unauthorized_accesses(FILE *log)
 			printf("User %d, with %d\n", user_index[i], denied_access_counts[i]);
 		}
 	}
-
-
-	// // testing - all users
-	// printf("All users:\n");
-	// for (int i = 0; i < user_count; i++) {
-	// 	printf("User %d, with %d\n", user_index[i], denied_access_counts[i]);
-	// }
 
 	return;
 }
