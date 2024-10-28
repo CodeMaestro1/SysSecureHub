@@ -30,3 +30,6 @@ https://www.geeksforgeeks.org/use-fflushstdin-c/
 
 str to datetime:
 https://www.geeksforgeeks.org/python-datetime-strptime-function/
+
+<Others>
+https://chmod-calculator.com/
