@@ -1,0 +1,26 @@
+uid:
+https://man7.org/linux/man-pages/man2/getuid.2.html
+
+check if file exists (for create check):
+https://www.learnc.net/c-tutorial/c-file-exists/
+
+time & date:
+https://www.tutorialspoint.com/c_standard_library/c_function_strftime.htm
+
+utc time conv:
+https://www.tutorialspoint.com/c_standard_library/c_function_gmtime.htm
+
+evp.h hasing function used:
+https://blog.magnatox.com/posts/c_hashing_files_with_openssl/
+
+free for hashing ctx:
+https://github.com/openssl/openssl/blob/master/crypto/evp/digest.c
+
+get file path from fp (& cur proc):
+https://www.linuxquestions.org/questions/programming-9/getting-file-path-from-file-pointer-in-c-245415/ (bad)
+https://man7.org/linux/man-pages/man2/readlink.2.html
+
+
+fflush to clear stream (because hash was calculating before it was written to file)
+https://www.geeksforgeeks.org/use-fflushstdin-c/ 
+
