@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <openssl/evp.h> //install the required package
+#include <openssl/evp.h>
 #include <errno.h>
 
 #define DATETIME_SIZE 50
@@ -69,7 +69,6 @@ char* get_filepath(FILE* file) {
         fclose(file);
         return NULL;
     }
-    // printf("- %s-\n", filepath); // test
 
     return filepath;
 }
@@ -226,7 +225,7 @@ size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
 	int access_type = 2;
 
 	// check if user denied 
-	int action_denied = (original_fwrite_ret < size*nmemb); // once user has "w" fp, is there no privilige issue? (TODO) 
+	int action_denied = (original_fwrite_ret < size*nmemb); // TODO: once user has "w" fp, is there no privilige issue? (TODO) 
 
 	// fingerprint
 	char* fingerprint = NULL;
