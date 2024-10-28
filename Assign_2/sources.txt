@@ -1,3 +1,5 @@
+<Part 1>
+
 uid:
 https://man7.org/linux/man-pages/man2/getuid.2.html
 
@@ -21,6 +23,10 @@ https://www.linuxquestions.org/questions/programming-9/getting-file-path-from-fi
 https://man7.org/linux/man-pages/man2/readlink.2.html
 
 
-fflush to clear stream (because hash was calculating before it was written to file)
+fflush to clear stream (because hash was calculating before it was written to file):
 https://www.geeksforgeeks.org/use-fflushstdin-c/ 
 
+<Part 2>
+
+str to datetime:
+https://www.geeksforgeeks.org/python-datetime-strptime-function/
