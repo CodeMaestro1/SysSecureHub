@@ -8,68 +8,53 @@
 #define OTHERS_PERMISSIONS 0007     // Others: read, write, execute
 #define PUBLIC_PERMISSIONS 0777     // Owner, Group, Others: read, write, execute
 
-void set_permissions(char *filename) 
-{
-    if (chmod(filename, PUBLIC_PERMISSIONS) == -1) {
-        printf("Error changing permissions for %s: %s\n", filename, strerror(errno));
+void set_permissions(const char *filename, int permissions) {
+    if (chmod(filename, permissions) == -1) {
+        perror("Error changing permissions");
     }
 }
 
-void simulate_user_access(char *filename){
-    for(int i = 0; i < 10; i++){
-        while (i < 2) {
-            FILE *file = fopen(filename, "r");
+void simulate_user_access(const char *filename, int permission_type) {
+    set_permissions(filename, permission_type);
+    
+    for (int i = 0; i < 10; i++) {
+        FILE *file = NULL;
+        char buffer[100] = "Test data";
+        
+        if (i < 2 || (i >= 8 && i < 10)) {
+            file = fopen(filename, "r");
             if (file == NULL) {
-                printf("Error opening file for reading\n");
-            } else {
-                char buffer[100];
-                fread(buffer, 1, 100, file);
-                fclose(file);
+                perror("Error opening file for reading");
+                continue;
             }
-            i++;
+            fread(buffer, 1, sizeof(buffer), file);
+        } 
+        else if (i >= 2 && i < 5) {
+            file = fopen(filename, "w");
+            if (file == NULL) {
+                perror("Error opening file for writing");
+                continue;
+            }
+            fwrite(buffer, 1, strlen(buffer), file);
+        } 
+        else if (i >= 5 && i < 8) {
+            file = fopen(filename, "a");
+            if (file == NULL) {
+                perror("Error opening file for appending");
+                continue;
+            }
+            fwrite(buffer, 1, strlen(buffer), file);
         }
-
-        while (i >= 2 && i < 5) {
-            FILE *file = fopen(filename, "w");
-            if (file == NULL) {
-                printf("Error opening file for writing\n");
-            } else {
-                char buffer[100] = "Test data";
-                fwrite(buffer, 1, strlen(buffer), file);
-                fclose(file);
-            }
-            i++;
-        }
-
-        while (i >= 5 && i < 8) {
-            FILE *file = fopen(filename, "a");
-            if (file == NULL) {
-                printf("Error opening file for appending\n");
-            } else {
-                char buffer[100] = "Test data";
-                fwrite(buffer, 1, strlen(buffer), file);
-                fclose(file);
-            }
-            i++;
-        }
-
-        while (i >= 8 && i < 10) {
-            FILE *file = fopen(filename, "r");
-            if (file == NULL) {
-                printf("Error opening file for reading\n");
-            } else {
-                char buffer[100];
-                fread(buffer, 1, 100, file);
-                fclose(file);
-            }
-            i++;
+        
+        if (file != NULL) {
+            fclose(file);
         }
     }
 }
 
-int main() 
-{
-    int i;
+int main() {
+
+	int i;
     size_t bytes;
     FILE *file;
     char filenames[10][7] = {"file_0", "file_1", 
@@ -85,14 +70,13 @@ int main()
         } else {
             bytes = fwrite(filenames[i], strlen(filenames[i]), 1, file);
             fclose(file);
-            set_permissions(filenames[i]);
+
+			int permissions = 	(i < 2) ? PUBLIC_PERMISSIONS :
+                        	(i < 5) ? OWNERSHIP_PERMISSIONS :
+                        	(i < 8) ? GROUP_PERMISSIONS : OTHERS_PERMISSIONS;
+
+            simulate_user_access(filenames[i], permissions);
         }
     }
-
-    // Simulate user access
-    for (i = 0; i < 10; i++) {
-        simulate_user_access(filenames[i]);
+	return 0;
     }
-
-    return 0;
-}
