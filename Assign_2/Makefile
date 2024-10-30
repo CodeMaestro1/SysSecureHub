@@ -17,8 +17,7 @@ run: logger.so test_aclog
 	LD_PRELOAD=./logger.so ./test_aclog
 
 clean:
-    rm -rf logger.so
-    rm -rf test_aclog
-    rm -rf acmonitor
-    find . -type f -name 'file_*' -not -name '*.log' -exec rm -f {} + ##Exclude log files from the deletion
-
+	rm -rf logger.so
+	rm -rf test_aclog
+	rm -rf acmonitor
+	find . -type f -name 'file_*' -not -name '*.log' -exec rm -f {} + ##Exclude log files from the deletion

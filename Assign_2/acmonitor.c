@@ -13,7 +13,7 @@
 #define MAX_FILES 50
 #define DENIED_ACCESS_LIMIT 5 
 #define FINGERPRINT_MAX 200
-#define PATH_MAX_LITE 300 // too much memory otherwise (dynamic meme allocation for each filepath is obviously the solution but nah)
+#define PATH_MAX_LITE 300 //Ideally, this should be calculated dynamically but for the sake of simplicity, we are using a fixed value
 
 
 void check() {
