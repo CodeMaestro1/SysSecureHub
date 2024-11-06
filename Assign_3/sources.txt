@@ -6,3 +6,6 @@ https://www.geeksforgeeks.org/python-program-to-get-all-pairwise-combinations-fr
 
 matrix to table in console:
 https://stackoverflow.com/questions/9535954/printing-lists-as-tabular-data
+
+hash:
+https://stackoverflow.com/questions/16874598/how-to-calculate-the-md5-checksum-of-a-file-in-python
