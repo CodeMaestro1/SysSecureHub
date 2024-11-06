@@ -1,11 +1,29 @@
 from pip._vendor import requests
 import os
 from datetime import datetime
+import random
 
 #Define some tags to search for
 TAG = ("Virus", "spyware", "Ransomware", "trojan", "exploit")
 
-def get_malware_samples_by_tag(tag, limit=10):
+#define some types of the files
+FILETYPES = ['exe', 'jar', 'sh']
+
+
+""" creates random 'normal' files """
+def create_normal_files(normal_count, file_length=50):
+    os.makedirs('files', exist_ok=True)
+    my_normal_files = [f'files/file_{i}.{get_filetype(i)}' for i in range(normal_count)] # pseudo-random choice
+
+    # create files and add some random bytes (to get different hashes)
+    for fpath in my_normal_files:
+        with open(fpath, 'w') as file:
+            file.write(get_rand_bytes(file_length))
+
+    print("Created normal files.")
+
+
+def get_malware_samples_by_tag(tag, limit=5):
     url = "https://mb-api.abuse.ch/api/v1/"
     
     headers = {
@@ -79,6 +97,31 @@ def write_file(file, malware_samples, tag):
             file.write(entry_line)
     else:
         file.write("No results found.\n")
+
+""" generates a hash for a file based on provided hash func """
+def hash_file(fpath, hash_func):
+    hash = hash_func()
+
+    with open(fpath, "rb") as f:
+        while True:
+            chunk = f.read(4096)  # read in chunks of 4k
+            if not chunk:
+                break
+            hash.update(chunk)
+
+    return hash.hexdigest()
+
+""" generates rand string of some chars """
+def get_rand_bytes(length):
+    # maybe should be replaced with urandom as stated in the instructions 
+    chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    random_string = ''.join(random.choice(chars) for _ in range(length))
+    return random_string
+
+""" pick filetype for file creation """
+def get_filetype(i):
+    # pseudo-random to overide the old files 
+    return FILETYPES[i%len(FILETYPES)]
 
 
 if __name__ == "__main__":
