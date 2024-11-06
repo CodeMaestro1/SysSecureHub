@@ -1,3 +1,8 @@
 <Malware based>
 https://bazaar.abuse.ch/
 
+permutations for pairwise comp:
+https://www.geeksforgeeks.org/python-program-to-get-all-pairwise-combinations-from-a-list/
+
+matrix to table in console:
+https://stackoverflow.com/questions/9535954/printing-lists-as-tabular-data
