@@ -1,26 +1,64 @@
 from pip._vendor import requests
 import os
-from datetime import datetime
+import hashlib
+import datetime
+import string
 import random
 
 #Define some tags to search for
 TAG = ("Virus", "spyware", "Ransomware", "trojan", "exploit")
 
-#define some types of the files
-FILETYPES = ['exe', 'jar', 'sh']
+FILE_SIZE = 50 # 50 bytes
 
+""" generates rand string of some chars """
+def get_rand_string(length):
+    """Generates a random string of specified length.
 
-""" creates random 'normal' files """
-def create_normal_files(normal_count, file_length=50):
-    os.makedirs('files', exist_ok=True)
-    my_normal_files = [f'files/file_{i}.{get_filetype(i)}' for i in range(normal_count)] # pseudo-random choice
+    Args:
+        length (int): _description_
 
-    # create files and add some random bytes (to get different hashes)
-    for fpath in my_normal_files:
-        with open(fpath, 'w') as file:
-            file.write(get_rand_bytes(file_length))
+    Returns:
+        _type_: _description_
+    """
+    random_string = ''.join(random.choices(string.ascii_letters + string.digits,k=length)) # initializing size of string
+    return random_string
 
-    print("Created normal files.")
+def generate_sha256_md5(random_string):
+    """Generates a SHA256 and MD5 hash for a given random string.
+
+    Args:
+        random_string (str): a string generated using a random function
+
+    Returns:
+        tuple: A tuple containing the SHA256 and MD5 hashes.
+    """
+    sha256 = hashlib.sha256(random_string.encode()).hexdigest()
+    md5 = hashlib.md5(random_string.encode()).hexdigest()
+
+    return sha256, md5
+
+def generate_non_malicious_data(number):
+    """Generates non-malicious data.
+
+    Args:
+        number (int): The number of non-malicious data to generate.
+
+    Returns:
+        list: A list of non-malicious data.
+    """
+    non_malicious_data = []
+    for _ in range(number):
+        random_string = get_rand_string(FILE_SIZE)
+        sha256, md5 = generate_sha256_md5(random_string)
+        non_malicious_data.append({
+            "sha256_hash": sha256,
+            "md5_hash": md5,
+            "tag": "Non-Malware",
+            "first_seen": datetime.datetime.now().strftime("%Y-%m-%d"),
+            "threat_level": "Safe",
+            "severity_level": "None"
+        })
+    return non_malicious_data
 
 
 def get_malware_samples_by_tag(tag, limit=5):
@@ -76,11 +114,19 @@ def get_threat_level(sha256):
         return None
 
 def classify_threat_level(threat_level):
+    """Given a threat level, return a severity level.
+
+    Args:
+        threat_level (int): The threat level to classify.
+
+    Returns:
+        dict: The severity level of the threat, otherwise "Unknown".
+    """
     threat_level_map = {1: "Low", 2: "Medium", 3: "High"}
     return threat_level_map.get(threat_level, "Unknown")
 
 
-def write_file(file, malware_samples, tag):
+def write_malware_signature_file(file, malware_samples, tag):
     if malware_samples:
         for sample in malware_samples:
             # Extract the required fields
@@ -98,30 +144,32 @@ def write_file(file, malware_samples, tag):
     else:
         file.write("No results found.\n")
 
-""" generates a hash for a file based on provided hash func """
-def hash_file(fpath, hash_func):
-    hash = hash_func()
+def write_non_malware_signature_file(file, non_malicious_data):
+    """
+    Writes non-malicious data entries to the provided file in a structured format.
 
-    with open(fpath, "rb") as f:
-        while True:
-            chunk = f.read(4096)  # read in chunks of 4k
-            if not chunk:
-                break
-            hash.update(chunk)
-
-    return hash.hexdigest()
-
-""" generates rand string of some chars """
-def get_rand_bytes(length):
-    # maybe should be replaced with urandom as stated in the instructions 
-    chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    random_string = ''.join(random.choice(chars) for _ in range(length))
-    return random_string
-
-""" pick filetype for file creation """
-def get_filetype(i):
-    # pseudo-random to overide the old files 
-    return FILETYPES[i%len(FILETYPES)]
+    Args:
+        file (file object): The file object where data will be written.
+        non_malicious_data (list): A list of dictionaries containing non-malicious data.
+        tag (str): The tag associated with the data (e.g., "Non-Malware").
+    """
+    if non_malicious_data:
+        for sample in non_malicious_data:
+            # Extract the required fields with default values
+            md5_hash = sample.get("md5_hash", "N/A")
+            sha256_hash = sample.get("sha256_hash", "N/A")
+            tag = sample.get("tag", "N/A")
+            first_seen = sample.get("first_seen", "N/A")
+            threat_level = sample.get("threat_level", "N/A")
+            severity_level = sample.get("severity_level", "N/A")
+            
+            # Format each entry line
+            entry_line = f"{md5_hash:<32} | {sha256_hash:<64} | {tag:<12} | {first_seen:<12} | {severity_level:<14}\n"
+            
+            # Write the formatted line to the file
+            file.write(entry_line)
+    else:
+        file.write("No results found.\n")
 
 
 if __name__ == "__main__":
@@ -134,6 +182,9 @@ if __name__ == "__main__":
         # Iterate over each tag and write corresponding entries
         for tag in TAG:
             malware_samples = get_malware_samples_by_tag(tag)
-            write_file(file, malware_samples, tag)
+            write_malware_signature_file(file, malware_samples, tag)
+
+        non_malicious_data = generate_non_malicious_data(25)
+        write_non_malware_signature_file(file, non_malicious_data)
 
 
