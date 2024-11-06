@@ -5,7 +5,7 @@ from datetime import datetime
 #Define some tags to search for
 TAG = ("Virus", "spyware", "Ransomware", "trojan", "exploit")
 
-def get_malware_samples_by_tag(tag, limit=5):
+def get_malware_samples_by_tag(tag, limit=10):
     url = "https://mb-api.abuse.ch/api/v1/"
     
     headers = {
