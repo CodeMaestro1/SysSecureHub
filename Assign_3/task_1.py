@@ -2,16 +2,31 @@ import os
 import random 
 import hashlib
 from datetime import datetime
-# import json
+import argparse
 
 import task_1_utils as t1u
 
+TAGS = ['Worm', 'Ransomware', 'Virus', 'Spyware']
+
 """ generates the database, combining data from the api and the user provided 'malware' files """
 def generate_database(output_file, api_count, my_malware_samples=[]):
-    api_malware_samples = t1u.get_recent_malware_samples(limit=api_count)
+    api_malware_samples = []
+    tag_count = int(api_count/len(TAGS))
 
-    if api_malware_samples == []: print("Error getting samples from API")
-    else: print("Got malware samples from API")
+    for tag in TAGS:
+        # get samples for tag
+        cur_api_malware_samples = t1u.get_malware_samples_by_tag(tag, limit=tag_count)
+
+        # add tag (of interest) to current samples (for later)
+        for sample in cur_api_malware_samples:
+            sample["classified_tag"] = tag 
+
+        if cur_api_malware_samples != []: 
+            api_malware_samples += cur_api_malware_samples
+            print(f"Got {tag} malware samples from API")
+        else: 
+            print(f"Error getting {tag} samples from API")
+
 
     with open(output_file, 'w') as file:
         file.write("MD5 Hash | SHA256 Hash | Malware Type | Infection Date | Severity Level\n")
@@ -28,15 +43,14 @@ def generate_database(output_file, api_count, my_malware_samples=[]):
             # get required info
             md5 = sample["md5_hash"]
             sha256 = sample["sha256_hash"]
-            type = sample["file_type"] # (?)
+            type = sample["classified_tag"]
             infection_date = sample["first_seen"].split(" ")[0] # get only date
-            severity_level = t1u.calculate_severity_level() # (?)
+            severity_level = t1u.classify_threat_score(t1u.get_threat_score(sha256)) # for my malware return Unknown
 
             entry = [md5, sha256, type, infection_date, severity_level]
             file.write(f'{" | ".join(entry)}\n')
     
     print("Database created")
-
 
 """ creates random 'normal' files """
 def create_normal_files(normal_count, file_length=50):
@@ -66,9 +80,8 @@ def create_malware_files(malware_count, file_length=50):
         
         sample["md5_hash"] = t1u.hash_file(fpath, hashlib.md5) # hashlib.md5().hexdigest()
         sample["sha256_hash"] = t1u.hash_file(fpath, hashlib.sha256) # hashlib.sha256().hexdigest()
-        sample["file_type"] = filetype
+        sample["classified_tag"] = random.choice(TAGS) 
         sample["first_seen"] = datetime(2001, 9, 11).strftime("%Y-%m-%d") # random date
-        # severity level is fake for now, so   
 
         my_malware_samples.append(sample)
 
@@ -94,15 +107,25 @@ def generate_hashes(folderpath, filenames):
     
     return hashes
 
+# """ parser """
+# parser = argparse.ArgumentParser(description='Query sample information by tag on Malware Bazaar by abuse.ch')
+# parser.add_argument('-t', '--tag', help='Type of malware to search for (e.g. Worm, Ransomware)', type=str, metavar="TAG", required=True)
+
+# args = parser.parse_args()
+
 """ run (1) """
 create_normal_files(3)
 my_malware_samples = create_malware_files(5)
 
-generate_database('my_malware_samples.txt', 100, my_malware_samples=my_malware_samples)
+generate_database('my_malware_samples.txt', 12, my_malware_samples=my_malware_samples)
 
 """ run (2) """
+# Here it should search files dir and look classify the files inside as malicious or not (should be easy but its 0330)
+
+""" run (3) """
 folderpath = 'assignment3_all/sample_pdfs-20241104T090609Z-001/sample_pdfs'
 filenames = [f'{i}.pdf' for i in [1, 2, 3, 4, 5, 8, 9, 10]]
 
 hashes = generate_hashes(folderpath, filenames)
-t1u.pairwise_compare_hashes(hashes)
+tables, hash_funcs, files = t1u.pairwise_compare_hashes(hashes)
+t1u.print_tables(tables, hash_funcs, files)
