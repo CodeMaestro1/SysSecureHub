@@ -18,7 +18,6 @@ def generate_hashes(folderpath, filenames):
         hashes[filename]["md5"] = md5
         hashes[filename]["sha256"] = sha256
         hashes[filename]["sha512"] = sha512
-        # print(f'\n{filename}:\nmd5: {md5}\nsha256: {sha256}\nsha512: {sha512}')
     
     return hashes
 

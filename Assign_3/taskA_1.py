@@ -39,7 +39,7 @@ def generate_sha256_md5(random_string):
     Returns:
         tuple: A tuple containing the SHA256 and MD5 hashes.
     """
-    sha256 = hashlib.sha256(random_string.encode(utf-8)).hexdigest()
+    sha256 = hashlib.sha256(random_string.encode()).hexdigest()
     md5 = hashlib.md5(random_string.encode()).hexdigest()
 
     return sha256, md5

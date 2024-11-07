@@ -4,3 +4,5 @@ https://bazaar.abuse.ch/
 https://www.geeksforgeeks.org/python-program-to-find-hash-of-file/
 
 https://www.eicar.org/download-anti-malware-testfile/
+
+https://www.geeksforgeeks.org/os-walk-python/

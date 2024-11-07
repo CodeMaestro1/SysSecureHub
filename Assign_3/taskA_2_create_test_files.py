@@ -2,12 +2,12 @@ import os
 from taskA_1 import get_rand_string
 
 # Directory where the files will be stored
-OUTPUT_DIR = r".\test_files"
+OUTPUT_DIR = r"./test_files"
 TEST_FILES_COUNT = 15
 fake_malicious_strings = [
-    "This_is_a_malicious_file_1",
-    "This_is_a_malicious_file_2",
-    "This_is_a_malicious_file_3",
+    r"This_is_a_malicious_file_1",
+    r"This_is_a_malicious_file_2",
+    r"This_is_a_malicious_file_3",
     r"X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"
 ]
 
@@ -28,13 +28,13 @@ def create_files(files_num, file_length):
 
     # Create normal files
     for i in range(files_num - len(fake_malicious_strings)):
-        with open(f"{OUTPUT_DIR}/{i}.txt", "w") as f:
-            f.write(get_rand_string(file_length))
+        with open(f"{OUTPUT_DIR}/{i}.txt", "wb") as file:
+            file.write(get_rand_string(file_length).encode('utf-8'))
 
     # Create malicious files
     for i, malicious_string in enumerate(fake_malicious_strings, start=files_num - len(fake_malicious_strings)):
-        with open(f"{OUTPUT_DIR}/{i}.txt", "w") as f:
-            f.write(malicious_string)
+        with open(f"{OUTPUT_DIR}/{i}.txt", "wb") as file:
+            file.write(malicious_string.encode('utf-8'))
 
 
 if __name__ == "__main__":
