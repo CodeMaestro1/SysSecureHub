@@ -12,31 +12,36 @@ fake_malicious_strings = [
     r"X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"
 ]
 
-""" Creates 'malware'/'normal' files and returns their required metadata in a dict """
-def create_files(files_num, file_length):
+
+def create_files(num_non_malicious_files, file_length, fake_malicious_strings=fake_malicious_strings, output_dir_par=OUTPUT_DIR):
     """Creates files with random strings and fake malicious strings.
 
     Args:
-        files_num (_type_): _description_
-        file_length (_type_): _description_
+        num_non_malicious_files (int): Number of non-malicious files to create.
+        file_length (int): Length of each file.
+        fake_malicious_strings (list): List of malicious strings.
+        output_dir_par (str): Output directory path.
     """
     try:
-        os.makedirs(OUTPUT_DIR, exist_ok=True)
-        print(f"Creating files in: {os.path.abspath(OUTPUT_DIR)}")  # Added print statement
+        os.makedirs(output_dir_par, exist_ok=True)
+        print(f"Creating files in: {os.path.abspath(output_dir_par)}")  # Added print statement
     except OSError as e:
-        print(f"Error creating directory '{OUTPUT_DIR}': {e}")
+        print(f"Error creating directory '{output_dir_par}': {e}")
         return
+    
+    if num_non_malicious_files > 0 and len(fake_malicious_strings) > 0: 
+        # Create normal files
+        for i in range(num_non_malicious_files):
+            with open(f"{output_dir_par}/{i}.txt", "wb") as file:
+                file.write(get_rand_string(file_length).encode('utf-8'))
 
-    # Create normal files
-    for i in range(files_num - len(fake_malicious_strings)):
-        with open(f"{OUTPUT_DIR}/{i}.txt", "wb") as file:
-            file.write(get_rand_string(file_length).encode('utf-8'))
-
-    # Create malicious files
-    for i, malicious_string in enumerate(fake_malicious_strings, start=files_num - len(fake_malicious_strings)):
-        with open(f"{OUTPUT_DIR}/{i}.txt", "wb") as file:
-            file.write(malicious_string.encode('utf-8'))
-
+        # Create malicious files
+        for i, malicious_string in enumerate(fake_malicious_strings, start=num_non_malicious_files):
+            with open(f"{output_dir_par}/{i}.txt", "wb") as file:
+                file.write(malicious_string.encode('utf-8'))
+    else:
+        print("Number of files to create should be greater than 0.")
+        return
 
 if __name__ == "__main__":
     create_files(TEST_FILES_COUNT, 50)

@@ -3,6 +3,8 @@ import os
 
 hash_algorithms = {'md5', 'sha256', 'sha1', 'sha512'}
 
+malware_list_findings = []
+
 def calculate_file_hash(file_path, algorithm):
     """A general function to calculate the sha1, sha256, sha512, or md5 hash of a file.
 
@@ -37,12 +39,10 @@ def generate_hashes_for_files(current_directory):
     for path, _, files in os.walk(current_directory):
         for filename in files:
             file_path = os.path.join(path, filename)
-            # get relevant file info
             hashes[filename] = {}
             for algorithm in hash_algorithms:
                 file_hash = calculate_file_hash(file_path, algorithm)
                 hashes[filename][algorithm] = file_hash
-            hashes[filename]["fpath"] = file_path
     
     return hashes
 
@@ -53,24 +53,23 @@ def compare_hashes_with_database(hashes, hashes_database):
         hashes (dict): A dictionary where each key is a filename and the value is a dictionary of algorithm-hash pairs.
         hashes_database (dict): A dictionary where each key is a hash value and the value contains malware details.
     """
-    # contains info about malware files 
-    malware_files_found = []
-
     for filename, hash_dict in hashes.items():
-        # for algorithm, file_hash in hash_dict.items():
-        #     if algorithm in hash_algorithms: # checks all algs but compares with md5 always
-        file_hash = hash_dict["md5"]
-        details = hashes_database.get(file_hash) # this only checks md5 but its fine 
-        if details: 
-            fpath = hashes[filename]["fpath"]
-            malware_type = details.get('malware_type')
-            sha256 = hashes[filename]["sha256"]
-            md5 = hashes[filename]["md5"]
-            malware_files_found.append( {"name": filename, "fpath": fpath, "md5": md5, "sha256": sha256, "type": malware_type} )
-            print(f"File '{filename}' has a matching hash '{file_hash}' in the database. Malware Type: {malware_type}")
-            break # if one hash comp equality is found no need to keep comparing the rest of the algs 
-    
-    return malware_files_found
+        for algorithm, file_hash in hash_dict.items():
+            details = hashes_database.get(file_hash)
+            if details:
+                collect_malicious_data(filename, file_hash, details.get('sha256_hash'), details.get('malware_type'), malware_list_findings, False)
+                malware_type = details.get('malware_type')
+                print(f"File '{filename}' has a matching {algorithm.upper()} hash '{file_hash}' in the database. Malware Type: {malware_type}")
+
+def collect_malicious_data(file_name, md5_hash, sha256_hash,
+                            malware_type, malware_info_list = malware_list_findings , print_output=False):
+    if print_output:
+        print(malware_info_list)
+    else:
+        malware_info_list.append( {"name": file_name,
+                                    "md5": md5_hash, "sha256": sha256_hash,
+                                    "type": malware_type} )
+
 
 def read_database_hashes(database_file):
     with open(database_file, 'r') as file:
@@ -100,26 +99,18 @@ def read_database_hashes(database_file):
     
     return database_hashes
 
-def search_dir_recursive(search_dir, database_path):
-    malware_files = []
-    for path, folders, files in os.walk(search_dir, topdown=True):
-        # Remove 'sample_pdfs' from folders to skip traversing it
-        # if 'sample_pdfs' in folders:
-        #     folders.remove('sample_pdfs')
 
+def search_directory_for_malware_files(directory_path, directory_malware_hashes = "malware_signature.txt"):
+    for path, folders, files in os.walk(directory_path, topdown=True):
+        if 'Assign_3/sample_pdfs-20241104T090609Z-001/sample_pdfs' in folders:
+            folders.remove('Assign_3/sample_pdfs-20241104T090609Z-001/sample_pdfs')
         for folder in folders:
-            hashes = generate_hashes_for_files(os.path.join(path, folder))
-            
-            database_hashes = read_database_hashes(database_path)
-            malware_files_found = compare_hashes_with_database(hashes, database_hashes) # found in current dir 
-            malware_files += malware_files_found
-    
-    return malware_files
+                sub_directory = os.path.join(path, folder)
+                file_hashes = generate_hashes_for_files(sub_directory)
+                database_hashes = read_database_hashes(directory_malware_hashes)                
+                compare_hashes_with_database(file_hashes, database_hashes)
 
 if __name__ == '__main__':
-    search_dir = 'taskB_1_files'
-    database_path = 'malware_signature.txt'
-
-    _ = search_dir_recursive(search_dir, database_path)
-    
-    
+    current_directory = os.getcwd()
+    search_directory_for_malware_files(current_directory)
+    collect_malicious_data("file_name", "md5_hash", "sha256_hash", "malware_type",  malware_list_findings, True)

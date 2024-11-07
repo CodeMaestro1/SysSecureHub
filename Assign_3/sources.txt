@@ -6,3 +6,7 @@ https://www.geeksforgeeks.org/python-program-to-find-hash-of-file/
 https://www.eicar.org/download-anti-malware-testfile/
 
 https://www.geeksforgeeks.org/os-walk-python/
+
+https://www.geeksforgeeks.org/python-os-listdir-method/
+
+https://stackoverflow.com/questions/10377998/how-can-i-iterate-over-files-in-a-given-directory

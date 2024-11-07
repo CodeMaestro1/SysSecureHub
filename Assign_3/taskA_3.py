@@ -2,24 +2,21 @@ import numpy as np
 from tabulate import tabulate
 import hashlib
 import os
+from taskA_2 import calculate_file_hash
 
 
-""" return hashes for some files """
-def generate_hashes(folderpath, filenames):
+folderpath = 'Assign_3/sample_pdfs-20241104T090609Z-001/sample_pdfs'
+sha_algorithms = ["sha1", "sha256","sha512"]
+
+def calculate_hashes_for_pdf(folderpath):
     hashes = {}
-    for filename in filenames:
-        fpath = f'{os.getcwd()}/{folderpath}/{filename}'
-
-        md5 = hash_file(fpath, hashlib.md5)
-        sha256 = hash_file(fpath, hashlib.sha256)
-        sha512 = hash_file(fpath, hashlib.sha512)
-
-        hashes[filename] = {}
-        hashes[filename]["md5"] = md5
-        hashes[filename]["sha256"] = sha256
-        hashes[filename]["sha512"] = sha512
-    
+    for file in os.listdir(folderpath):
+        hashes[file] = {}
+        for selected_algorithm in sha_algorithms:
+            file_hash = calculate_file_hash(f'{folderpath}/{file}', selected_algorithm)
+            hashes[file][selected_algorithm] = file_hash
     return hashes
+
 
 """ pairwise compare hashes """
 def pairwise_compare_hashes(hashes):
@@ -46,22 +43,8 @@ def print_tables(tables, hash_funcs, files):
 
         print(tabulate(tables[:, :, k].tolist(), headers=files, tablefmt="orgtbl"))
 
-""" generates a hash for a file based on provided hash func """
-def hash_file(fpath, hash_func):
-    hash = hash_func()
 
-    with open(fpath, "rb") as f:
-        while True:
-            chunk = f.read(4096)  # read in chunks of 4k
-            if not chunk:
-                break
-            hash.update(chunk)
 
-    return hash.hexdigest()
-
-folderpath = 'Assign_3/sample_pdfs-20241104T090609Z-001/sample_pdfs'
-filenames = [f'{i}.pdf' for i in [1, 2, 3, 4, 5, 8, 9, 10]]
-
-hashes = generate_hashes(folderpath, filenames)
+hashes = calculate_hashes_for_pdf(folderpath)
 tables, hash_funcs, files = pairwise_compare_hashes(hashes)
 print_tables(tables, hash_funcs, files)
