@@ -6,6 +6,7 @@ import string
 import random
 
 from taskA_2 import scan_folder_non_rec
+from taskB_2 import quarantine_files
 
 # import taskA_2 as tA2
 
@@ -54,7 +55,7 @@ def create_directory_with_files(path, max_depth, dirs_per_dir=2, files_per_dir=3
     for i in range(files_per_dir):
         filename = f"dir_{dir_num}_level_{depth}_file_{i}"
         file_path = os.path.join(current_dir, filename)
-        fill_file(file_path)
+        fill_file(file_path) # random choose malware/normal
     
     # rec fill the rest
     for i in range(dirs_per_dir):
@@ -64,7 +65,9 @@ def scan_directory(path, database_path):
     for root, dirs, files in os.walk(path):
         for dir in dirs:
             full_dir = os.path.join(root, dir)
-            scan_folder_non_rec(full_dir, database_path)
+            malware_files = scan_folder_non_rec(full_dir, database_path) # from A_2
+            # quarantine the malware files found in current dir 
+            quarantine_files(malware_files)
 
 if __name__ == "__main__":
     path = f'{os.getcwd()}/taskB_1_files'
