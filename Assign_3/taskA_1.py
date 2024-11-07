@@ -6,7 +6,7 @@ import string
 import random
 
 #Define some tags to search for
-TAG = ("Virus", "Spyware", "Ransomware", "Trojan", "Exploit")
+TAG = ("Virus", "spyware", "ransomware", "trojan", "exploit")
 
 FILE_SIZE = 50 # 50 bytes
 NORMAL_FILE_TAG = "Non-Malware"
