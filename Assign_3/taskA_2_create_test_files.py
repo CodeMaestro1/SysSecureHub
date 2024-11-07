@@ -2,8 +2,9 @@ import os
 from taskA_1 import get_rand_string
 
 # Directory where the files will be stored
-OUTPUT_DIR = r".\test_files"
+OUTPUT_DIR = r"test_files"
 TEST_FILES_COUNT = 15
+
 fake_malicious_strings = [
     "This_is_a_malicious_file_1",
     "This_is_a_malicious_file_2",
