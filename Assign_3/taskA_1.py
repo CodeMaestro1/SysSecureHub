@@ -6,9 +6,10 @@ import string
 import random
 
 #Define some tags to search for
-TAG = ("Virus", "spyware", "Ransomware", "trojan", "exploit")
+TAG = ("Virus", "Spyware", "Ransomware", "Trojan", "Exploit")
 
 FILE_SIZE = 50 # 50 bytes
+NORMAL_FILE_TAG = "Non-Malware"
 
 fake_malicious_strings = [
     "This_is_a_malicious_file_1",
@@ -60,7 +61,7 @@ def generate_non_malicious_data(number):
         non_malicious_data.append({
             "sha256_hash": sha256,
             "md5_hash": md5,
-            "tag": "Non-Malware",
+            "tag": NORMAL_FILE_TAG,
             "first_seen": datetime.datetime.now().strftime("%Y-%m-%d"),
             "threat_level": "Safe",
             "severity_level": "None"
@@ -149,7 +150,8 @@ def write_malware_signature_file(file, malware_samples, tag):
             
             file.write(entry_line)
     else:
-        file.write("No results found.\n")
+        # file.write("No results found.\n")
+        pass
 
 def write_non_malware_signature_file(file, non_malicious_data):
     """
