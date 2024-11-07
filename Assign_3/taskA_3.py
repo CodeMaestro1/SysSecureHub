@@ -1,6 +1,5 @@
 import numpy as np
 from tabulate import tabulate
-import hashlib
 import os
 from taskA_2 import calculate_file_hash
 

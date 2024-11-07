@@ -1,5 +1,6 @@
 import hashlib
 import os
+import datetime
 
 hash_algorithms = {'md5', 'sha256', 'sha1', 'sha512'}
 
@@ -57,18 +58,22 @@ def compare_hashes_with_database(hashes, hashes_database):
         for algorithm, file_hash in hash_dict.items():
             details = hashes_database.get(file_hash)
             if details:
-                collect_malicious_data(filename, file_hash, details.get('sha256_hash'), details.get('malware_type'), malware_list_findings, False)
+                current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                
                 malware_type = details.get('malware_type')
                 print(f"File '{filename}' has a matching {algorithm.upper()} hash '{file_hash}' in the database. Malware Type: {malware_type}")
+                collected_data = collect_malicious_data(filename, file_hash, details.get('sha256_hash'),
+                                        details.get('malware_type'), current_time, malware_list_findings)
+        return collected_data
 
 def collect_malicious_data(file_name, md5_hash, sha256_hash,
-                            malware_type, malware_info_list = malware_list_findings , print_output=False):
-    if print_output:
-        print(malware_info_list)
-    else:
+                            malware_type, time_stamp, malware_info_list = malware_list_findings,
+                            ):
         malware_info_list.append( {"name": file_name,
                                     "md5": md5_hash, "sha256": sha256_hash,
-                                    "type": malware_type} )
+                                    "type": malware_type,
+                                    "time_stamp": time_stamp} )
+        return malware_info_list
 
 
 def read_database_hashes(database_file):
@@ -113,4 +118,3 @@ def search_directory_for_malware_files(directory_path, directory_malware_hashes 
 if __name__ == '__main__':
     current_directory = os.getcwd()
     search_directory_for_malware_files(current_directory)
-    collect_malicious_data("file_name", "md5_hash", "sha256_hash", "malware_type",  malware_list_findings, True)
