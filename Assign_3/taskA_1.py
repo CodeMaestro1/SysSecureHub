@@ -10,6 +10,13 @@ TAG = ("Virus", "spyware", "Ransomware", "trojan", "exploit")
 
 FILE_SIZE = 50 # 50 bytes
 
+fake_malicious_strings = [
+    "This_is_a_malicious_file_1",
+    "This_is_a_malicious_file_2",
+    "This_is_a_malicious_file_3",
+    r"X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"
+]
+
 """ generates rand string of some chars """
 def get_rand_string(length):
     """Generates a random string of specified length.
@@ -32,7 +39,7 @@ def generate_sha256_md5(random_string):
     Returns:
         tuple: A tuple containing the SHA256 and MD5 hashes.
     """
-    sha256 = hashlib.sha256(random_string.encode()).hexdigest()
+    sha256 = hashlib.sha256(random_string.encode(utf-8)).hexdigest()
     md5 = hashlib.md5(random_string.encode()).hexdigest()
 
     return sha256, md5
@@ -171,6 +178,18 @@ def write_non_malware_signature_file(file, non_malicious_data):
     else:
         file.write("No results found.\n")
 
+def write_fake_malicious_data(file, list_string):
+    for string in list_string:
+        sha256, md5 = generate_sha256_md5(string)
+        tag = "Fake Malware"
+        first_seen = datetime.datetime.now().strftime("%Y-%m-%d")
+        threat_level = 3
+        severity_level = "High"
+        
+        entry_line = f"{md5} | {sha256} | {tag} | {first_seen} | {severity_level}\n"
+        
+        file.write(entry_line)
+
 
 if __name__ == "__main__":
     # Open the file once in write mode to write headers
@@ -184,7 +203,8 @@ if __name__ == "__main__":
             malware_samples = get_malware_samples_by_tag(tag)
             write_malware_signature_file(file, malware_samples, tag)
 
-        non_malicious_data = generate_non_malicious_data(25)
+        non_malicious_data = generate_non_malicious_data(21)
         write_non_malware_signature_file(file, non_malicious_data)
+        write_fake_malicious_data(file, fake_malicious_strings)
 
 
