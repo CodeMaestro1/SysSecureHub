@@ -5,7 +5,7 @@ import datetime
 import string
 import random
 
-from taskA_2 import scan_folder_non_rec
+from taskA_2 import search_dir_recursive
 from taskB_2 import quarantine_files
 
 # import taskA_2 as tA2
@@ -61,18 +61,14 @@ def create_directory_with_files(path, max_depth, dirs_per_dir=2, files_per_dir=3
     for i in range(dirs_per_dir):
         create_directory_with_files(current_dir, max_depth, files_per_dir, depth=depth+1, dir_num=i+1)
 
-def scan_directory(path, database_path):
-    for root, dirs, files in os.walk(path):
-        for dir in dirs:
-            full_dir = os.path.join(root, dir)
-            malware_files = scan_folder_non_rec(full_dir, database_path) # from A_2
-            # quarantine the malware files found in current dir 
-            quarantine_files(malware_files)
-
 if __name__ == "__main__":
     path = f'{os.getcwd()}/taskB_1_files'
     database_path = 'malware_signature.txt'
 
     create_directory_with_files(path, max_depth=2, dirs_per_dir=2, files_per_dir=3)
 
-    scan_directory(path, database_path)
+    malware_files = search_dir_recursive(path, database_path)
+
+    quarantine_files(malware_files)
+
+    # scan_directory(path, database_path)

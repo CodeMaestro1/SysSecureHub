@@ -4,6 +4,7 @@ import shutil
 QUARANTINE_PATH = 'taskB_2_quarantined_files'
 
 def quarantine_files(file_entries):
+    # print(file_entries)
     for fentry in file_entries:
         quarantine_file(fentry["name"], fentry["fpath"], fentry["sha256"])
 
@@ -13,7 +14,7 @@ def quarantine_file(filename, fpath, sha256):
     quarantined_fpath = os.path.join(QUARANTINE_PATH, new_name)
     os.makedirs(quarantined_fpath, exist_ok=True)
 
-    print("here" + quarantined_fpath)
+    # print("here" + quarantined_fpath)
 
     try:
         shutil.move(fpath, quarantined_fpath)
