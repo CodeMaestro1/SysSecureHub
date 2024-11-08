@@ -1,4 +1,6 @@
 import os
+import random 
+
 from taskA_1 import get_rand_string
 
 # Directory where the files will be stored
@@ -6,9 +8,6 @@ OUTPUT_DIR = r"./test_files"
 TEST_FILES_COUNT = 15
 
 fake_malicious_strings = [
-    "This_is_a_malicious_file_1",
-    "This_is_a_malicious_file_2",
-    "This_is_a_malicious_file_3",
     r"X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"
 ]
 
@@ -23,15 +22,16 @@ def create_files(num_non_malicious_files, file_length, fake_malicious_strings=fa
         output_dir_par (str): Output directory path.
         use_dir_in_name (bool): Flag to include directory name in filenames.
     """
+    # print(output_dir_par)
     try:
         os.makedirs(output_dir_par, exist_ok=True)
-        #print(f"Creating files in: {os.path.abspath(output_dir_par)}")
+        print(f"Creating files in: {os.path.abspath(output_dir_par)}")
     except OSError as e:
         print(f"Error creating directory '{output_dir_par}': {e}")
         return
 
     if num_non_malicious_files > 0 and len(fake_malicious_strings) > 0:
-        base_name = os.path.basename(os.path.normpath(output_dir_par)) if use_dir_in_name else ""
+        base_name = f"{os.path.basename(os.path.normpath(output_dir_par))}_rand_{random.randint(1, 1000)}" if use_dir_in_name else "" # rand identifier to showcase log entries are unique (level 2 and above has identical file names)
         
         # Create non-malicious files
         for i in range(num_non_malicious_files):
