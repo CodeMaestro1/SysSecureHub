@@ -54,6 +54,8 @@ def compare_hashes_with_database(hashes, hashes_database):
         hashes (dict): A dictionary where each key is a filename and the value is a dictionary of algorithm-hash pairs.
         hashes_database (dict): A dictionary where each key is a hash value and the value contains malware details.
     """
+    collected_data = []
+
     for filename, hash_dict in hashes.items():
         for algorithm, file_hash in hash_dict.items():
             details = hashes_database.get(file_hash)
@@ -62,9 +64,13 @@ def compare_hashes_with_database(hashes, hashes_database):
                 
                 malware_type = details.get('malware_type')
                 print(f"File '{filename}' has a matching {algorithm.upper()} hash '{file_hash}' in the database. Malware Type: {malware_type}")
-                collected_data = collect_malicious_data(filename, file_hash, details.get('sha256_hash'),
-                                        details.get('malware_type'), current_time, malware_list_findings)
-        return collected_data
+                collected_data.append( {"name": filename,
+                                        "md5": file_hash,
+                                        "sha256": details.get('sha256_hash'),
+                                        "type": malware_type,
+                                        "time_stamp": current_time} )
+
+    return collected_data
 
 def collect_malicious_data(file_name, md5_hash, sha256_hash,
                             malware_type, time_stamp, malware_info_list = malware_list_findings,
@@ -105,15 +111,18 @@ def read_database_hashes(database_file):
     return database_hashes
 
 
-def search_directory_for_malware_files(directory_path, directory_malware_hashes = "malware_signature.txt"):
+def search_directory_for_malware_files(directory_path, directory_malware_hashes="malware_signature.txt"):
+    excluded_folders = ['sample_pdfs-20241104T090609Z-001', '__pycache__']
+    
     for path, folders, files in os.walk(directory_path, topdown=True):
-        if 'Assign_3/sample_pdfs-20241104T090609Z-001/sample_pdfs' in folders:
-            folders.remove('Assign_3/sample_pdfs-20241104T090609Z-001/sample_pdfs')
+        # Remove excluded folders if they exist in the current directories
+        folders[:] = [folder for folder in folders if folder not in excluded_folders]
+        
         for folder in folders:
-                sub_directory = os.path.join(path, folder)
-                file_hashes = generate_hashes_for_files(sub_directory)
-                database_hashes = read_database_hashes(directory_malware_hashes)                
-                compare_hashes_with_database(file_hashes, database_hashes)
+            sub_directory = os.path.join(path, folder)
+            file_hashes = generate_hashes_for_files(sub_directory)
+            database_hashes = read_database_hashes(directory_malware_hashes) 
+            compare_hashes_with_database(file_hashes, database_hashes)
 
 if __name__ == '__main__':
     current_directory = os.getcwd()

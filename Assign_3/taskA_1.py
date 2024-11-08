@@ -63,8 +63,7 @@ def generate_non_malicious_data(number):
             "md5_hash": md5,
             "tag": NORMAL_FILE_TAG,
             "first_seen": datetime.datetime.now().strftime("%Y-%m-%d"),
-            "threat_level": "Safe",
-            "severity_level": "None"
+            "severity_level": "Safe"
         })
     return non_malicious_data
 
@@ -169,7 +168,6 @@ def write_non_malware_signature_file(file, non_malicious_data):
             sha256_hash = sample.get("sha256_hash", "N/A")
             tag = sample.get("tag", "N/A")
             first_seen = sample.get("first_seen", "N/A")
-            threat_level = sample.get("threat_level", "N/A")
             severity_level = sample.get("severity_level", "N/A")
             
             # Format each entry line

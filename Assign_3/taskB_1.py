@@ -24,7 +24,7 @@ def create_directory_with_files(path, max_depth, dirs_per_dir=2, files_per_dir=3
     for i in range(files_per_dir):
         filename = f"dir_{dir_num}_level_{depth}_file_{i}"
         file_path = os.path.join(current_dir, filename)
-        create_files(1, FILE_SIZE, fake_malicious_string, file_path)
+        create_files(1, FILE_SIZE, fake_malicious_string, file_path, True)
     
     # rec fill the rest
     for i in range(dirs_per_dir):
@@ -52,14 +52,19 @@ def log_malware_data(malware_info_list):
 
 if __name__ == "__main__":
     path = f'{os.getcwd()}/taskB_1_files'
-    database_path = 'malware_signature.txt'
+    database_path = '/home/codemaestro/Desktop/SysSecureHub/Assign_3/malware_signature.txt'
 
     create_directory_with_files(path, max_depth=2, dirs_per_dir=2, files_per_dir=3)
 
+    database_hashes = read_database_hashes(database_path)
+    all_collected_data = []
+
     for root, dirs, files in os.walk(path):
-        for file in files:
-            file_hashes = generate_hashes_for_files(os.path.join(root, file))
-            database_hashes = read_database_hashes(database_path)
-            collected_data = compare_hashes_with_database(file_hashes, database_hashes)
-            log_malware_data(collected_data)
+        file_hashes = generate_hashes_for_files(root)
+        collected_data = compare_hashes_with_database(file_hashes, database_hashes)
+        if collected_data:
+            all_collected_data.extend(collected_data)
+    
+    if all_collected_data:
+        log_malware_data(all_collected_data)
             

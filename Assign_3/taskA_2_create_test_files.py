@@ -13,7 +13,7 @@ fake_malicious_strings = [
 ]
 
 
-def create_files(num_non_malicious_files, file_length, fake_malicious_strings=fake_malicious_strings, output_dir_par=OUTPUT_DIR):
+def create_files(num_non_malicious_files, file_length, fake_malicious_strings=fake_malicious_strings, output_dir_par=OUTPUT_DIR, use_dir_in_name=False):
     """Creates files with random strings and fake malicious strings.
 
     Args:
@@ -21,27 +21,31 @@ def create_files(num_non_malicious_files, file_length, fake_malicious_strings=fa
         file_length (int): Length of each file.
         fake_malicious_strings (list): List of malicious strings.
         output_dir_par (str): Output directory path.
+        use_dir_in_name (bool): Flag to include directory name in filenames.
     """
     try:
         os.makedirs(output_dir_par, exist_ok=True)
-        print(f"Creating files in: {os.path.abspath(output_dir_par)}")  # Added print statement
+        print(f"Creating files in: {os.path.abspath(output_dir_par)}")
     except OSError as e:
         print(f"Error creating directory '{output_dir_par}': {e}")
         return
-    
-    if num_non_malicious_files > 0 and len(fake_malicious_strings) > 0: 
-        # Create normal files
+
+    if num_non_malicious_files > 0 and len(fake_malicious_strings) > 0:
+        base_name = os.path.basename(os.path.normpath(output_dir_par)) if use_dir_in_name else ""
+        
+        # Create non-malicious files
         for i in range(num_non_malicious_files):
-            with open(f"{output_dir_par}/{i}.txt", "wb") as file:
+            file_name = f"{base_name}_{i}.txt" if use_dir_in_name else f"{i}.txt"
+            with open(os.path.join(output_dir_par, file_name), "wb") as file:
                 file.write(get_rand_string(file_length).encode('utf-8'))
 
         # Create malicious files
         for i, malicious_string in enumerate(fake_malicious_strings, start=num_non_malicious_files):
-            with open(f"{output_dir_par}/{i}.txt", "wb") as file:
+            file_name = f"{base_name}_{i}.txt" if use_dir_in_name else f"{i}.txt"
+            with open(os.path.join(output_dir_par, file_name), "wb") as file:
                 file.write(malicious_string.encode('utf-8'))
     else:
         print("Number of files to create should be greater than 0.")
-        return
 
 if __name__ == "__main__":
     create_files(TEST_FILES_COUNT, 50)
