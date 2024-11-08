@@ -57,6 +57,7 @@ def compare_hashes_with_database(hashes, hashes_database):
     collected_data = []
 
     for filename, hash_dict in hashes.items():
+        match_flag = False
         for algorithm, file_hash in hash_dict.items():
             details = hashes_database.get(file_hash)
             if details:
@@ -68,7 +69,12 @@ def compare_hashes_with_database(hashes, hashes_database):
                                         "md5": file_hash,
                                         "sha256": details.get('sha256_hash'),
                                         "type": malware_type,
-                                        "time_stamp": current_time} )
+                                        "time_stamp": current_time
+                } )
+                match_flag = True
+                break
+        if match_flag:
+            break
 
     return collected_data
 
