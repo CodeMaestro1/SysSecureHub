@@ -55,8 +55,9 @@ def compare_hashes_with_database(hashes, hashes_database):
         hashes_database (dict): A dictionary where each key is a hash value and the value contains malware details.
     """
     collected_data = []
-
+    
     for filename, hash_dict in hashes.items():
+        #print(f"Checking file '{filename}' for malware signatures...")
         match_flag = False
         for algorithm, file_hash in hash_dict.items():
             details = hashes_database.get(file_hash)
@@ -64,7 +65,7 @@ def compare_hashes_with_database(hashes, hashes_database):
                 current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 
                 malware_type = details.get('malware_type')
-                print(f"File '{filename}' has a matching {algorithm.upper()} hash '{file_hash}' in the database. Malware Type: {malware_type}")
+                #print(f"File '{filename}' has a matching {algorithm.upper()} hash '{file_hash}' in the database. Malware Type: {malware_type}")
                 collected_data.append( {"name": filename,
                                         "md5": file_hash,
                                         "sha256": details.get('sha256_hash'),

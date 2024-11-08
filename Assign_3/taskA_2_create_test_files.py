@@ -25,7 +25,7 @@ def create_files(num_non_malicious_files, file_length, fake_malicious_strings=fa
     """
     try:
         os.makedirs(output_dir_par, exist_ok=True)
-        print(f"Creating files in: {os.path.abspath(output_dir_par)}")
+        #print(f"Creating files in: {os.path.abspath(output_dir_par)}")
     except OSError as e:
         print(f"Error creating directory '{output_dir_par}': {e}")
         return

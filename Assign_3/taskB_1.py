@@ -50,6 +50,7 @@ def log_malware_data(malware_info_list):
         logger.info(log_message)
 
 
+
 if __name__ == "__main__":
     path = f'{os.getcwd()}/taskB_1_files'
     database_path = '/home/codemaestro/Desktop/SysSecureHub/Assign_3/malware_signature.txt'
@@ -66,5 +67,6 @@ if __name__ == "__main__":
             all_collected_data.extend(collected_data)
     
     if all_collected_data:
+        pass
         log_malware_data(all_collected_data)
             
