@@ -2,14 +2,7 @@ import os
 import random 
 
 from taskA_1 import get_rand_string
-
-# Directory where the files will be stored
-OUTPUT_DIR = r"./test_files"
-TEST_FILES_COUNT = 15
-
-fake_malicious_strings = [
-    r"X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"
-]
+from config import OUTPUT_DIR, TEST_FILES_COUNT, fake_malicious_strings
 
 
 def create_files(num_non_malicious_files, file_length, fake_malicious_strings=fake_malicious_strings, output_dir_par=OUTPUT_DIR, use_dir_in_name=False):
@@ -22,7 +15,6 @@ def create_files(num_non_malicious_files, file_length, fake_malicious_strings=fa
         output_dir_par (str): Output directory path.
         use_dir_in_name (bool): Flag to include directory name in filenames.
     """
-    # print(output_dir_par)
     try:
         os.makedirs(output_dir_par, exist_ok=True)
         print(f"Creating files in: {os.path.abspath(output_dir_par)}")

@@ -4,26 +4,17 @@ import hashlib
 import datetime
 import string
 import random
+from config import TAG, FILE_SIZE, NORMAL_FILE_TAG , fake_malicious_strings , API_ABUSE, HYBRID_ANALYSIS
 
-#Define some tags to search for
-TAG = ("Virus", "spyware", "ransomware", "trojan", "exploit")
 
-FILE_SIZE = 50 # 50 bytes
-NORMAL_FILE_TAG = "Non-Malware"
-
-fake_malicious_strings = [
-    r"X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"
-]
-
-""" generates rand string of some chars """
 def get_rand_string(length):
     """Generates a random string of specified length.
 
     Args:
-        length (int): _description_
+        length (int): The length of the random string to generate.
 
     Returns:
-        _type_: _description_
+        string: A random string of the specified length.
     """
     random_string = ''.join(random.choices(string.ascii_letters + string.digits,k=length)) # initializing size of string
     return random_string
@@ -69,7 +60,7 @@ def get_malware_samples_by_tag(tag, limit=5):
     url = "https://mb-api.abuse.ch/api/v1/"
     
     headers = {
-        "API-KEY": os.getenv("API_ABUSE")  # Make sure your API key is set in the environment
+        "API-KEY": API_ABUSE 
     }
 
     data = {
@@ -95,7 +86,7 @@ def get_malware_samples_by_tag(tag, limit=5):
 def get_threat_level(sha256):
     api_base_url = f"https://www.hybrid-analysis.com/api/v2/search/hash"
 
-    API_KEY = os.getenv("HYBRID_ANALYSIS")
+    API_KEY = HYBRID_ANALYSIS
 
     headers = {
         "accept":"application/json",
@@ -131,6 +122,13 @@ def classify_threat_level(threat_level):
 
 
 def write_malware_signature_file(file, malware_samples, tag):
+    """Writes malware samples to the provided file in the specified format format.
+
+    Args:
+        file (file object): a file object where data will be written.
+        malware_samples (list): a list of dictionaries containing malware samples.
+        tag (string): the tag associated with the data (e.g., "Virus").
+    """
     if malware_samples:
         for sample in malware_samples:
             # Extract the required fields
@@ -146,8 +144,7 @@ def write_malware_signature_file(file, malware_samples, tag):
             
             file.write(entry_line)
     else:
-        # file.write("No results found.\n")
-        pass
+        file.write("No results found.\n")
 
 def write_non_malware_signature_file(file, non_malicious_data):
     """
@@ -176,11 +173,16 @@ def write_non_malware_signature_file(file, non_malicious_data):
         file.write("No results found.\n")
 
 def write_fake_malicious_data(file, list_string):
+    """ Writes fake malicious data entries to the provided file in a specific format.
+
+    Args:
+        file (file object): A file object where data will be written.
+        list_string (list): A list with the "malicious" strings to be written.
+    """
     for string in list_string:
         sha256, md5 = generate_sha256_md5(string)
         tag = "Fake Malware"
         first_seen = datetime.datetime.now().strftime("%Y-%m-%d")
-        threat_level = 3
         severity_level = "High"
         
         entry_line = f"{md5} | {sha256} | {tag} | {first_seen} | {severity_level}\n"

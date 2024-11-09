@@ -2,7 +2,8 @@ import hashlib
 import os
 import datetime
 
-hash_algorithms = {'md5', 'sha256', 'sha1', 'sha512'}
+from config import hash_algorithms, OUTPUT_DIR 
+from taskA_2_create_test_files import create_files
 
 malware_list_findings = []
 
@@ -14,7 +15,7 @@ def calculate_file_hash(file_path, algorithm):
         algorithm (_type_): _description_
 
     Returns:
-        _type_: _description_
+        str: the hexidecimal hash of the file
     """
 
     hash_func = hashlib.new(algorithm)
@@ -26,6 +27,7 @@ def calculate_file_hash(file_path, algorithm):
     
     return hash_func.hexdigest()
 
+
 def generate_hashes_for_files(current_directory):
     """Generates hashes for the specified files in the given folder.
 
@@ -36,20 +38,16 @@ def generate_hashes_for_files(current_directory):
         dict: A dictionary where each key is a filename and the value is a dictionary of algorithm-hash pairs.
     """
     hashes = {}
-    
-    # for path, _, files in os.walk(current_directory):
-    #     for filename in files:
-    # print('dir: ' + current_directory)
+
     for filename in os.listdir(current_directory):
         file_path = os.path.join(current_directory, filename)
         if os.path.isfile(file_path):
-            # print('\t' + filename)
             hashes[filename] = {}
             for algorithm in hash_algorithms:
                 file_hash = calculate_file_hash(file_path, algorithm)
                 hashes[filename][algorithm] = file_hash
-            # we need the fpath for quarantine
-            hashes[filename]["fpath"] = file_path # probably is searched in the alg loop but it won't match so whatever
+            # Add the file path to the dictionary
+            hashes[filename]["fpath"] = file_path
     
     return hashes
 
@@ -61,14 +59,13 @@ def compare_hashes_with_database(hashes, hashes_database):
         hashes_database (dict): A dictionary where each key is a hash value and the value contains malware details.
     """
     collected_data = []
-
     for filename, hash_dict in hashes.items():
         match_flag = False
         for algorithm, file_hash in hash_dict.items():
             details = hashes_database.get(file_hash)
             if details:
                 current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                
+                file_size = os.path.getsize(hash_dict["fpath"])
                 malware_type = details.get('malware_type')
                 print(f"File '{filename}' has a matching {algorithm.upper()} hash '{file_hash}' in the database. Malware Type: {malware_type}")
                 collected_data.append( {"name": filename,
@@ -76,18 +73,19 @@ def compare_hashes_with_database(hashes, hashes_database):
                                         "md5": file_hash,
                                         "sha256": details.get('sha256_hash'),
                                         "type": malware_type,
+                                        "size": file_size,
                                         "time_stamp": current_time
                 } )
                 match_flag = True
                 break
-        if match_flag:
-            break
-
+        if not match_flag:
+            pass
     return collected_data
 
 def collect_malicious_data(file_name, fpath, md5_hash, sha256_hash,
                             malware_type, time_stamp, malware_info_list = malware_list_findings,
                             ):
+
         malware_info_list.append( {"name": file_name,
                                    "fpath": fpath,
                                     "md5": md5_hash, "sha256": sha256_hash,
@@ -97,6 +95,14 @@ def collect_malicious_data(file_name, fpath, md5_hash, sha256_hash,
 
 
 def read_database_hashes(database_file):
+    """ Reads the malware signature file and stores the hashes in a dictionary.
+
+    Args:
+        database_file (str): the name of the file containing the malware hashes.
+
+    Returns:
+        dict: a dictionary where each key is the md5 hash and the value is a dictionary of sha256 hash and malware type.
+    """
     with open(database_file, 'r') as file:
         database_hashes = {}
 
@@ -128,25 +134,21 @@ def read_database_hashes(database_file):
 def search_directory_for_malware_files(directory_path, directory_malware_hashes="malware_signature.txt"):
     excluded_folders = ['sample_pdfs-20241104T090609Z-001', '__pycache__']
     
-    # search the current dir (is skipped in the loop)
-    file_hashes = generate_hashes_for_files(directory_path)
-    database_hashes = read_database_hashes(directory_malware_hashes) 
-    compare_hashes_with_database(file_hashes, database_hashes)
-    
     for path, folders, files in os.walk(directory_path, topdown=True):
         # Remove excluded folders if they exist in the current directories
         folders[:] = [folder for folder in folders if folder not in excluded_folders]
         
-        # print(folders)
         for folder in folders:
+            print(f"Searching for malware in: {folder}")
             sub_directory = os.path.join(path, folder)
             file_hashes = generate_hashes_for_files(sub_directory)
             database_hashes = read_database_hashes(directory_malware_hashes) 
             compare_hashes_with_database(file_hashes, database_hashes)
 
+
 if __name__ == '__main__':
     current_directory = os.getcwd()
 
-    # create test files function for A2 (TODO) 
+    create_files(10, 50, output_dir_par=OUTPUT_DIR)
 
     search_directory_for_malware_files(current_directory)

@@ -4,7 +4,6 @@ import shutil
 QUARANTINE_PATH = 'taskB_2_quarantined_files'
 
 def quarantine_files(file_entries):
-    # print(file_entries)
     for fentry in file_entries:
         quarantine_file(fentry["name"], fentry["fpath"], fentry["sha256"])
 
@@ -21,7 +20,7 @@ def quarantine_file(filename, fpath, sha256):
         print(f"Quarantined: {fpath} to {quarantined_fpath}")
     except Exception as e:
         print(f"Couldn't quarantine: {fpath}: {e}")
-        return False # fail
+        return False # failure
     
     return True # success 
 
