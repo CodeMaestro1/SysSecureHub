@@ -10,3 +10,5 @@ https://www.geeksforgeeks.org/os-walk-python/
 https://www.geeksforgeeks.org/python-os-listdir-method/
 
 https://stackoverflow.com/questions/10377998/how-can-i-iterate-over-files-in-a-given-directory
+
+https://www.kdnuggets.com/monitor-your-file-system-with-pythons-watchdog

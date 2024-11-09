@@ -12,9 +12,6 @@ FILE_SIZE = 50 # 50 bytes
 NORMAL_FILE_TAG = "Non-Malware"
 
 fake_malicious_strings = [
-    "This_is_a_malicious_file_1",
-    "This_is_a_malicious_file_2",
-    "This_is_a_malicious_file_3",
     r"X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"
 ]
 

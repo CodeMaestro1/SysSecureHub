@@ -7,6 +7,7 @@ from taskA_1 import  FILE_SIZE
 from taskA_2_create_test_files import fake_malicious_strings
 from taskA_2_create_test_files import create_files
 from taskA_2 import generate_hashes_for_files, compare_hashes_with_database, read_database_hashes
+from taskB_2 import quarantine_files
 
 logging.config.fileConfig(fname='mylogger.conf', disable_existing_loggers = False)
 
@@ -50,9 +51,16 @@ def log_malware_data(malware_info_list):
         # Log the message
         logger.info(log_message)
 
-def search_folder_recursive(path):
+def search_folder_recursive(path, database_hashes):
     all_collected_data = []
 
+    # search current dir (skipped in loop)
+    file_hashes = generate_hashes_for_files(path)
+    collected_data = compare_hashes_with_database(file_hashes, database_hashes)
+    if collected_data:
+        all_collected_data.extend(collected_data)
+
+    # recursive search 
     for root, dirs, _ in os.walk(path):
         # print(dirs)
         for dir in dirs:
@@ -64,6 +72,17 @@ def search_folder_recursive(path):
 
     return all_collected_data
 
+def taskB_packaged(path, database_path): # you can change the name 
+    database_hashes = read_database_hashes(database_path) # wasteful but wtvr
+
+    all_collected_data = search_folder_recursive(path, database_hashes)
+
+    if all_collected_data:
+        log_malware_data(all_collected_data)
+
+        quarantine_files(all_collected_data)
+
+
 if __name__ == "__main__":
     path = f'taskB_1_files'
     database_path = 'malware_signature.txt'
@@ -72,8 +91,11 @@ if __name__ == "__main__":
 
     database_hashes = read_database_hashes(database_path)
 
-    all_collected_data = search_folder_recursive(path)
-    
+    all_collected_data = search_folder_recursive(path, database_hashes)
+
     if all_collected_data:
         log_malware_data(all_collected_data)
+
+        quarantine_files(all_collected_data)
+
             

@@ -48,6 +48,8 @@ def generate_hashes_for_files(current_directory):
             for algorithm in hash_algorithms:
                 file_hash = calculate_file_hash(file_path, algorithm)
                 hashes[filename][algorithm] = file_hash
+            # we need the fpath for quarantine
+            hashes[filename]["fpath"] = file_path # probably is searched in the alg loop but it won't match so whatever
     
     return hashes
 
@@ -70,6 +72,7 @@ def compare_hashes_with_database(hashes, hashes_database):
                 malware_type = details.get('malware_type')
                 print(f"File '{filename}' has a matching {algorithm.upper()} hash '{file_hash}' in the database. Malware Type: {malware_type}")
                 collected_data.append( {"name": filename,
+                                        "fpath": hash_dict["fpath"],
                                         "md5": file_hash,
                                         "sha256": details.get('sha256_hash'),
                                         "type": malware_type,
@@ -82,10 +85,11 @@ def compare_hashes_with_database(hashes, hashes_database):
 
     return collected_data
 
-def collect_malicious_data(file_name, md5_hash, sha256_hash,
+def collect_malicious_data(file_name, fpath, md5_hash, sha256_hash,
                             malware_type, time_stamp, malware_info_list = malware_list_findings,
                             ):
         malware_info_list.append( {"name": file_name,
+                                   "fpath": fpath,
                                     "md5": md5_hash, "sha256": sha256_hash,
                                     "type": malware_type,
                                     "time_stamp": time_stamp} )
@@ -124,10 +128,16 @@ def read_database_hashes(database_file):
 def search_directory_for_malware_files(directory_path, directory_malware_hashes="malware_signature.txt"):
     excluded_folders = ['sample_pdfs-20241104T090609Z-001', '__pycache__']
     
+    # search the current dir (is skipped in the loop)
+    file_hashes = generate_hashes_for_files(directory_path)
+    database_hashes = read_database_hashes(directory_malware_hashes) 
+    compare_hashes_with_database(file_hashes, database_hashes)
+    
     for path, folders, files in os.walk(directory_path, topdown=True):
         # Remove excluded folders if they exist in the current directories
         folders[:] = [folder for folder in folders if folder not in excluded_folders]
         
+        # print(folders)
         for folder in folders:
             sub_directory = os.path.join(path, folder)
             file_hashes = generate_hashes_for_files(sub_directory)
@@ -136,4 +146,7 @@ def search_directory_for_malware_files(directory_path, directory_malware_hashes=
 
 if __name__ == '__main__':
     current_directory = os.getcwd()
+
+    # create test files function for A2 (TODO) 
+
     search_directory_for_malware_files(current_directory)
