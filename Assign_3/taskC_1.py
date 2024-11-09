@@ -3,7 +3,6 @@ from watchdog.events import FileSystemEventHandler
 import time 
 import os 
 
-# from taskA_2 import search_directory_for_malware_files
 from taskB_1 import taskB_packaged
 
 class FileHandler(FileSystemEventHandler):

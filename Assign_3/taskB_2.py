@@ -1,19 +1,27 @@
 import os
 import shutil
 
-QUARANTINE_PATH = 'taskB_2_quarantined_files'
+from config import QUARANTINE_PATH
 
 def quarantine_files(file_entries):
     for fentry in file_entries:
         quarantine_file(fentry["name"], fentry["fpath"], fentry["sha256"])
 
 def quarantine_file(filename, fpath, sha256):
+    """Quarantines a file by moving it to a new directory and renaming it.
+
+    Args:
+        filename (str): The name of the file 
+        fpath (str): The path to the file
+        sha256 (str): the sha256 hash of the file
+
+    Returns:
+        bool: returns True if the file was successfully quarantined, False otherwise
+    """
     # how to deal with duplicate name_hash (?)
     new_name = f"{filename}_{sha256}"
     quarantined_fpath = os.path.join(QUARANTINE_PATH, new_name)
     os.makedirs(quarantined_fpath, exist_ok=True)
-
-    # print("here" + quarantined_fpath)
 
     try:
         shutil.move(fpath, quarantined_fpath)
