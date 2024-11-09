@@ -18,6 +18,12 @@ def quarantine_file(filename, fpath, sha256):
     try:
         shutil.move(fpath, quarantined_fpath)
         print(f"Quarantined: {fpath} to {quarantined_fpath}")
+    except PermissionError:
+        print(f"Permission denied when trying to quarantine: {fpath}")
+        return False  # Failure
+    except FileNotFoundError:
+        print(f"File not found: {fpath}")
+        return False  # Failure
     except Exception as e:
         print(f"Couldn't quarantine: {fpath}: {e}")
         return False # failure
