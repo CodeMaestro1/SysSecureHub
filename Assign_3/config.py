@@ -1,4 +1,5 @@
 import os
+import argparse
 
 #Define some tags to search for
 TAG = ("Virus", "spyware", "ransomware", "trojan", "exploit")
@@ -36,6 +37,3 @@ hash_algorithms = {'md5', 'sha256', 'sha1', 'sha512'}
 sha_algorithms = ["sha1", "sha256", "sha512"]
 
 folderpath = r'sample_pdfs-20241104T090609Z-001/sample_pdfs/'
-
-
-
