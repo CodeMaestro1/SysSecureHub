@@ -31,42 +31,43 @@ By performing a pairwise comparison between all hashes of the pdf files we get t
 
 ### Pairwise comparison for sha1 hash function
 
-| 1.pdf | 2.pdf | 5.pdf | 8.pdf | 10.pdf | 9.pdf | 4.pdf | 3.pdf |
-|-------|-------|-------|-------|--------|-------|-------|-------|
-| 1     | 0     | 0     | 0     | 0      | 0     | 0     | 0     |
-| 0     | 1     | 0     | 0     | 0      | 0     | 0     | 0     |
-| 0     | 0     | 1     | 0     | 0      | 0     | 0     | 0     |
-| 0     | 0     | 0     | 1     | 0      | 0     | 0     | 0     |
-| 0     | 0     | 0     | 0     | 1      | 0     | 0     | 0     |
-| 0     | 0     | 0     | 0     | 0      | 1     | 0     | 0     |
-| 0     | 0     | 0     | 0     | 0      | 0     | 1     | 0     |
-| 0     | 0     | 0     | 0     | 0      | 0     | 0     | 1     |
+
+| PDF    | 1.pdf | 2.pdf | 5.pdf | 8.pdf | 10.pdf | 9.pdf | 4.pdf | 3.pdf |
+|--------|-------|-------|-------|-------|--------|-------|-------|-------|
+| 1.pdf  | 1     | 0     | 0     | 0     | 0      | 0     | 0     | 0     |
+| 2.pdf  | 0     | 1     | 0     | 0     | 0      | 0     | 0     | 0     |
+| 5.pdf  | 0     | 0     | 1     | 0     | 0      | 0     | 0     | 0     |
+| 8.pdf  | 0     | 0     | 0     | 1     | 0      | 0     | 0     | 0     |
+| 10.pdf | 0     | 0     | 0     | 0     | 1      | 0     | 0     | 0     |
+| 9.pdf  | 0     | 0     | 0     | 0     | 0      | 1     | 0     | 0     |
+| 4.pdf  | 0     | 0     | 0     | 0     | 0      | 0     | 1     | 0     |
+| 3.pdf  | 0     | 0     | 0     | 0     | 0      | 0     | 0     | 1     |
 
 ### Pairwise comparison for sha256 hash function
 
-| 1.pdf | 2.pdf | 5.pdf | 8.pdf | 10.pdf | 9.pdf | 4.pdf | 3.pdf |
-|-------|-------|-------|-------|--------|-------|-------|-------|
-| 1     | 0     | 0     | 0     | 0      | 0     | 0     | 0     |
-| 0     | 1     | 0     | 0     | 0      | 0     | 0     | 0     |
-| 0     | 0     | 1     | 0     | 0      | 0     | 0     | 0     |
-| 0     | 0     | 0     | 1     | 0      | 0     | 0     | 0     |
-| 0     | 0     | 0     | 0     | 1      | 0     | 0     | 0     |
-| 0     | 0     | 0     | 0     | 0      | 1     | 0     | 0     |
-| 0     | 0     | 0     | 0     | 0      | 0     | 1     | 0     |
-| 0     | 0     | 0     | 0     | 0      | 0     | 0     | 1     |
+| PDF    | 1.pdf | 2.pdf | 5.pdf | 8.pdf | 10.pdf | 9.pdf | 4.pdf | 3.pdf |
+|--------|-------|-------|-------|-------|--------|-------|-------|-------|
+| 1.pdf  | 1     | 0     | 0     | 0     | 0      | 0     | 0     | 0     |
+| 2.pdf  | 0     | 1     | 0     | 0     | 0      | 0     | 0     | 0     |
+| 5.pdf  | 0     | 0     | 1     | 0     | 0      | 0     | 0     | 0     |
+| 8.pdf  | 0     | 0     | 0     | 1     | 0      | 0     | 0     | 0     |
+| 10.pdf | 0     | 0     | 0     | 0     | 1      | 0     | 0     | 0     |
+| 9.pdf  | 0     | 0     | 0     | 0     | 0      | 1     | 0     | 0     |
+| 4.pdf  | 0     | 0     | 0     | 0     | 0      | 0     | 1     | 0     |
+| 3.pdf  | 0     | 0     | 0     | 0     | 0      | 0     | 0     | 1     |
 
 ### Pairwise comparison for sha512 hash function
 
-| 1.pdf | 2.pdf | 5.pdf | 8.pdf | 10.pdf | 9.pdf | 4.pdf | 3.pdf |
-|-------|-------|-------|-------|--------|-------|-------|-------|
-| 1     | 0     | 0     | 0     | 0      | 0     | 0     | 0     |
-| 0     | 1     | 0     | 0     | 0      | 0     | 0     | 0     |
-| 0     | 0     | 1     | 0     | 0      | 0     | 0     | 0     |
-| 0     | 0     | 0     | 1     | 0      | 0     | 0     | 0     |
-| 0     | 0     | 0     | 0     | 1      | 0     | 0     | 0     |
-| 0     | 0     | 0     | 0     | 0      | 1     | 0     | 0     |
-| 0     | 0     | 0     | 0     | 0      | 0     | 1     | 0     |
-| 0     | 0     | 0     | 0     | 0      | 0     | 0     | 1     |
+| PDF    | 1.pdf | 2.pdf | 5.pdf | 8.pdf | 10.pdf | 9.pdf | 4.pdf | 3.pdf |
+|--------|-------|-------|-------|-------|--------|-------|-------|-------|
+| 1.pdf  | 1     | 0     | 0     | 0     | 0      | 0     | 0     | 0     |
+| 2.pdf  | 0     | 1     | 0     | 0     | 0      | 0     | 0     | 0     |
+| 5.pdf  | 0     | 0     | 1     | 0     | 0      | 0     | 0     | 0     |
+| 8.pdf  | 0     | 0     | 0     | 1     | 0      | 0     | 0     | 0     |
+| 10.pdf | 0     | 0     | 0     | 0     | 1      | 0     | 0     | 0     |
+| 9.pdf  | 0     | 0     | 0     | 0     | 0      | 1     | 0     | 0     |
+| 4.pdf  | 0     | 0     | 0     | 0     | 0      | 0     | 1     | 0     |
+| 3.pdf  | 0     | 0     | 0     | 0     | 0      | 0     | 0     | 1     |
 
 Looking at the tables above, we notice that all the diagonal elements are 1, signifying that each hash value is unique. This uniqueness arises from the deterministic nature of hash functions, which also highlights their collision-resistant properties. Moreover, the absence of any off-diagonal 1s suggests that the files haven't been altered. Hence, these hash functions play a crucial role in helping malware detection systems catch unauthorized file changes.
 
@@ -104,12 +105,12 @@ Ensure that the following libraries are installed on your system before executin
 
 - `numpy`
 - `watchdog`
-- `tabula`
+- `tabulate`
 
 You can install them using `pip` if necessary:
 
 ```bash
-pip install numpy watchdog tabula
+pip install numpy watchdog tabulate
 ```
 
 ---
