@@ -25,6 +25,51 @@ To build a signature malware database using real data, we leverage APIs from [Ma
 - Some entries may be new and unclassified. Such entries are labeled as *Unknown* for their severity level.
 - Fake malicious data is also generated for testing purposes. We use the famous EICAR test file and manually created "fake-malware" files. Although the term *fake-malware* is not entirely accurate, it was useful during testing. The fake malware is purposefully given a high severity level, but you can adjust this as needed.
 
+### Task A3
+
+By performing a pairwise comparison between all hashes of the pdf files we get the following results:
+
+### Pairwise comparison for sha1 hash function
+
+| 1.pdf | 2.pdf | 5.pdf | 8.pdf | 10.pdf | 9.pdf | 4.pdf | 3.pdf |
+|-------|-------|-------|-------|--------|-------|-------|-------|
+| 1     | 0     | 0     | 0     | 0      | 0     | 0     | 0     |
+| 0     | 1     | 0     | 0     | 0      | 0     | 0     | 0     |
+| 0     | 0     | 1     | 0     | 0      | 0     | 0     | 0     |
+| 0     | 0     | 0     | 1     | 0      | 0     | 0     | 0     |
+| 0     | 0     | 0     | 0     | 1      | 0     | 0     | 0     |
+| 0     | 0     | 0     | 0     | 0      | 1     | 0     | 0     |
+| 0     | 0     | 0     | 0     | 0      | 0     | 1     | 0     |
+| 0     | 0     | 0     | 0     | 0      | 0     | 0     | 1     |
+
+### Pairwise comparison for sha256 hash function
+
+| 1.pdf | 2.pdf | 5.pdf | 8.pdf | 10.pdf | 9.pdf | 4.pdf | 3.pdf |
+|-------|-------|-------|-------|--------|-------|-------|-------|
+| 1     | 0     | 0     | 0     | 0      | 0     | 0     | 0     |
+| 0     | 1     | 0     | 0     | 0      | 0     | 0     | 0     |
+| 0     | 0     | 1     | 0     | 0      | 0     | 0     | 0     |
+| 0     | 0     | 0     | 1     | 0      | 0     | 0     | 0     |
+| 0     | 0     | 0     | 0     | 1      | 0     | 0     | 0     |
+| 0     | 0     | 0     | 0     | 0      | 1     | 0     | 0     |
+| 0     | 0     | 0     | 0     | 0      | 0     | 1     | 0     |
+| 0     | 0     | 0     | 0     | 0      | 0     | 0     | 1     |
+
+### Pairwise comparison for sha512 hash function
+
+| 1.pdf | 2.pdf | 5.pdf | 8.pdf | 10.pdf | 9.pdf | 4.pdf | 3.pdf |
+|-------|-------|-------|-------|--------|-------|-------|-------|
+| 1     | 0     | 0     | 0     | 0      | 0     | 0     | 0     |
+| 0     | 1     | 0     | 0     | 0      | 0     | 0     | 0     |
+| 0     | 0     | 1     | 0     | 0      | 0     | 0     | 0     |
+| 0     | 0     | 0     | 1     | 0      | 0     | 0     | 0     |
+| 0     | 0     | 0     | 0     | 1      | 0     | 0     | 0     |
+| 0     | 0     | 0     | 0     | 0      | 1     | 0     | 0     |
+| 0     | 0     | 0     | 0     | 0      | 0     | 1     | 0     |
+| 0     | 0     | 0     | 0     | 0      | 0     | 0     | 1     |
+
+Looking at the tables above, we notice that all the diagonal elements are 1, signifying that each hash value is unique. This uniqueness arises from the deterministic nature of hash functions, which also highlights their collision-resistant properties. Moreover, the absence of any off-diagonal 1s suggests that the files haven't been altered. Hence, these hash functions play a crucial role in helping malware detection systems catch unauthorized file changes.
+
 ---
 
 ## Task B: Search and Quarantine
@@ -75,9 +120,23 @@ The `config.py` file contains global variables used throughout the project. You 
 
 ---
 
+## Limitations
+
+The use of Hybrid Analysis comes with restrictions, such as limited query allowances per hour. Additionally, free non-vetted accounts are provided with restricted API keys, which may limit database search capabilities.
+
+## Acknowledgements
+
+We extend our gratitude to Hybrid Analysis and MalwareBazaar for providing their APIs, which were essential in accessing and classifying malware data for this project.
+
 ## References
 
 - [MalwareBazaar API](https://bazaar.abuse.ch/api/)
 - [Hybrid Analysis API](https://www.hybrid-analysis.com/docs/api/v2)
+- [Python Program to find hash of file](https://www.geeksforgeeks.org/python-program-to-find-hash-of-file/)
+- [Anti Malware Testfile](https://www.eicar.org/download-anti-malware-testfile/)
+- [os.listdir() method](https://www.geeksforgeeks.org/python-os-listdir-method/)
+- [How can I iterate over files in a given directory?](https://stackoverflow.com/questions/10377998/how-can-i-iterate-over-files-in-a-given-directory)
+- [Monitor Your File System With Python’s Watchdog](https://www.kdnuggets.com/monitor-your-file-system-with-pythons-watchdog)
+- [argparse documentation](https://docs.python.org/3/library/argparse.html)
 
 ---

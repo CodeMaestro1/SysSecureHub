@@ -43,8 +43,8 @@ class FileHandler(FileSystemEventHandler):
         self.handle_directory_change(event) # in case
 
 def real_time_monitor_tool(search_directory, database_path):
-    """ A real time monitor tool that searches for malware in a given directory.
-        It reports any changes in the directory and searches for malware in the modified files
+    """ A real time monitor tool that searches for malware in a given directory.\n
+    It reports any changes in the directory and searches for malware in the modified files
 
     Args:
         search_directory (str): A path to the directory to monitor for changes
