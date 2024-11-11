@@ -73,6 +73,7 @@ def compare_hashes_with_database(hashes, hashes_database):
                                         "md5": file_hash,
                                         "sha256": details.get('sha256_hash'),
                                         "type": malware_type,
+                                        "level": details.get('severity_level'),
                                         "size": file_size,
                                         "time_stamp": current_time
                 } )
@@ -82,17 +83,6 @@ def compare_hashes_with_database(hashes, hashes_database):
             pass
     return collected_data
 
-def collect_malicious_data(file_name, fpath, md5_hash, sha256_hash,
-                            malware_type, time_stamp, malware_info_list = malware_list_findings,
-                            ):
-
-        malware_info_list.append( {"name": file_name,
-                                   "fpath": fpath,
-                                    "md5": md5_hash, "sha256": sha256_hash,
-                                    "type": malware_type,
-                                    "time_stamp": time_stamp} )
-        return malware_info_list
-
 
 def read_database_hashes(database_file):
     """ Reads the malware signature file and stores the hashes in a dictionary.
@@ -101,7 +91,7 @@ def read_database_hashes(database_file):
         database_file (str): the name of the file containing the malware hashes.
 
     Returns:
-        dict: a dictionary where each key is the md5 hash and the value is a dictionary of sha256 hash and malware type.
+        dict: a dictionary where each key is the md5 hash and the value is a dictionary of sha256 hash, malware type and the severity level.
     """
     with open(database_file, 'r') as file:
         database_hashes = {}
@@ -121,11 +111,15 @@ def read_database_hashes(database_file):
                 
                 # Extract the first three columns
                 md5_hash, sha256_hash, malware_type = columns[:3]
+
+                #Extract the last one which is the severity level
+                severity_level = columns[-1]
                 
                 # Store in the dictionary
                 database_hashes[md5_hash] = {
                     "sha256_hash": sha256_hash,
-                    "malware_type": malware_type
+                    "malware_type": malware_type,
+                    "severity_level": severity_level
                 }
     
     return database_hashes

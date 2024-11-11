@@ -7,6 +7,7 @@ from taskA_2_create_test_files import create_files
 from taskA_2 import generate_hashes_for_files, compare_hashes_with_database, read_database_hashes
 from taskB_2 import quarantine_files
 
+
 logging.config.fileConfig(fname='mylogger.conf', disable_existing_loggers = False)
 
 # Get the logger specified in the file
@@ -36,13 +37,14 @@ def log_malware_data(malware_info_list):
         md5_hash = malware_info.get("md5", "Unknown")
         sha256_hash = malware_info.get("sha256", "Unknown")
         malware_type = malware_info.get("type", "Unknown")
+        malware_level = malware_info.get("level", "Unknown")
         time_stamp = malware_info.get("time_stamp", "Unknown")
         file_size = malware_info.get("size", "Unknown")
 
         # Format the log message
         log_message = (
             f"File: {file_name} | MD5: {md5_hash} | SHA256: {sha256_hash} | "
-            f"Type: {malware_type} | " f"Size: {file_size}| Timestamp: {time_stamp}"
+            f"Type: {malware_type} | Level: {malware_level} | Size: {file_size} | Timestamp: {time_stamp}"
         )
 
         # Log the message

@@ -2,9 +2,38 @@
 
 This project implements a custom malware detection system using a signature database to identify and quarantine malicious files.
 
-## Definition
+## Definitions
 
-A *malicious file* is defined as any file whose metadata (e.g., SHA256 hash, etc.) has been categorized as a threat by the cybersecurity community.
+A *malicious file* is defined as any file whose metadata (e.g., SHA256 hash, etc.) has been categorized as a threat by a trusted source.
+
+A *trusted source* is a reputable organization that provides malware signatures and threat scores for files.
+
+The *program* refers to the main.py file unless its explicity refered to another file.
+
+---
+
+## Execution
+
+The program accepts the following arguments:
+
+- `-d <directory>`: The directory to scan.
+- `-s <signature file>`: Path to the malware signature database.
+- `-o <output file>`: File to save the report of infected files.
+- `-r` (optional): Runs the program in real-time to monitor the directory
+
+For the `-d` and `-s` arguments, you may only provide the file name, and the program will attempt to locate it starting from your working directory. If the file is not found or does not match the expected format, an exception will be raised.
+
+### Example Usage
+
+```bash
+python main.py -d test_directory -s malware_signatures.json -o report
+```
+
+**Notes**:
+
+- The output file does not need a specified extension. The program will automatically add the `log` extension.
+- To generate a new signature malware file, ensure you have the necessary accounts set up and that the environment variables for API keys are accessible.
+- You can run each script individually for testing or execute the `main.py` script to run all parts of the application together.
 
 ---
 
@@ -85,16 +114,6 @@ Malicious files are moved to a designated quarantine folder. Ideally, for enhanc
 ## Task C: Real-Time Monitoring and Anomaly Detection
 
 This task implements a real-time monitoring tool using Python’s `watchdog` library. The tool continuously monitors a specified directory for any changes and automatically quarantines any newly detected malicious files.
-
----
-
-## Usage
-
-You can run each script individually for testing or execute the `main.py` script to run all parts of the application together. **Note**: To generate a new signature malware file, ensure you have the necessary accounts set up and that the environment variables for API keys are accessible.
-
-### How to Run
-
-To run the program, execute the `main.py` script with the appropriate arguments.
 
 ---
 
