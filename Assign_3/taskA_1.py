@@ -165,7 +165,7 @@ def write_non_malware_signature_file(file, non_malicious_data):
             severity_level = sample.get("severity_level", "N/A")
             
             # Format each entry line
-            entry_line = f"{md5_hash:<32} | {sha256_hash:<64} | {tag:<12} | {first_seen:<12} | {severity_level:<14}\n"
+            entry_line = f"{md5_hash} | {sha256_hash} | {tag} | {first_seen} | {severity_level}\n"
             
             # Write the formatted line to the file
             file.write(entry_line)
@@ -205,5 +205,3 @@ if __name__ == "__main__":
         non_malicious_data = generate_non_malicious_data(21)
         write_non_malware_signature_file(file, non_malicious_data)
         write_fake_malicious_data(file, fake_malicious_strings)
-
-
