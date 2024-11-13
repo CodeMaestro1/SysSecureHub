@@ -78,7 +78,7 @@ def taskB_packaged(path, database_path):
     if all_collected_data:
         log_malware_data(all_collected_data)
 
-        quarantine_files(all_collected_data)
+        quarantine_files(all_collected_data, database_path)
 
 
 if __name__ == "__main__":
@@ -95,6 +95,6 @@ if __name__ == "__main__":
         log_malware_data(all_collected_data)
 
         # on if we consider b as a whole task like c 
-        quarantine_files(all_collected_data)
+        quarantine_files(all_collected_data, database_path)
 
             

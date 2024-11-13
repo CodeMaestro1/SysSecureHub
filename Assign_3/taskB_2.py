@@ -2,12 +2,19 @@ import os
 import shutil
 
 from config import QUARANTINE_PATH
+from taskA_2 import read_database_hashes
 
-def quarantine_files(file_entries):
+def quarantine_files(file_entries, database_path):
+    dhashes = read_database_hashes(database_path)
+
     for fentry in file_entries:
-        quarantine_file(fentry["name"], fentry["fpath"], fentry["sha256"])
+        quarantine_success = quarantine_file(fentry["name"], fentry["fpath"])
+        if quarantine_success:
+            severity_level = dhashes[fentry["md5"]]["severity_level"]
+            # print(severity_level)
+            print(f"Quarantined: {fentry['fpath']} of level {severity_level}")
 
-def quarantine_file(filename, fpath, sha256):
+def quarantine_file(filename, fpath):
     """Quarantines a file by moving it to a new directory and renaming it.
 
     Args:
@@ -41,7 +48,6 @@ def quarantine_file(filename, fpath, sha256):
 
     try:
         shutil.move(fpath, quarantined_fpath)
-        print(f"Quarantined: {fpath} to {quarantined_fpath}")
     except PermissionError:
         print(f"Permission denied when trying to quarantine: {fpath}")
         return False  # Failure
@@ -75,3 +81,4 @@ def new_name_if_exists(fpath):
     # normal case - doesn't exist
     else:
         return False, ""
+    
