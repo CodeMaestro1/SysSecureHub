@@ -2,7 +2,7 @@ import os
 import random 
 
 from taskA_1 import get_rand_string
-from config import OUTPUT_DIR, TEST_FILES_COUNT, fake_malicious_strings
+from config import OUTPUT_DIR, TEST_FILES_COUNT, fake_malicious_strings, FILE_SIZE
 
 
 def create_files(num_non_malicious_files, file_length, fake_malicious_strings=fake_malicious_strings, output_dir_par=OUTPUT_DIR, use_dir_in_name=False):
@@ -23,7 +23,7 @@ def create_files(num_non_malicious_files, file_length, fake_malicious_strings=fa
         return
 
     if num_non_malicious_files > 0 and len(fake_malicious_strings) > 0:
-        base_name = f"{os.path.basename(os.path.normpath(output_dir_par))}_rand_{random.randint(1, 1000)}" if use_dir_in_name else "" # rand identifier to showcase log entries are unique (level 2 and above has identical file names)
+        base_name = f"{os.path.basename(os.path.normpath(output_dir_par))}_rand_{random.randint(1, 10000)}" if use_dir_in_name else "" # rand identifier to showcase log entries are unique (level 2 and above has identical file names)
         
         # Create non-malicious files
         for i in range(num_non_malicious_files):
@@ -40,5 +40,5 @@ def create_files(num_non_malicious_files, file_length, fake_malicious_strings=fa
         print("Number of files to create should be greater than 0.")
 
 if __name__ == "__main__":
-    create_files(TEST_FILES_COUNT, 50)
+    create_files(TEST_FILES_COUNT, FILE_SIZE)
     print(f"Files created in '{OUTPUT_DIR}' directory.")

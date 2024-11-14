@@ -66,6 +66,6 @@ def real_time_monitor_tool(search_directory, database_path):
 
 if __name__ == "__main__":
 
-    search_dir = 'taskB_1_files/level_0_dir_1'
+    search_dir = 'taskB_1_files/L0D1'
 
     real_time_monitor_tool(search_dir, 'malware_signature.txt')

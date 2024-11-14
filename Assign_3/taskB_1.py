@@ -18,7 +18,7 @@ def create_directory_with_files(path, max_depth, dirs_per_dir=2, files_per_dir=3
     if depth == max_depth:
         return 
     
-    current_dir = os.path.join(path, f"level_{depth}_dir_{dir_num}")
+    current_dir = os.path.join(path, f"L{depth}D{dir_num}")
     os.makedirs(current_dir, exist_ok=True)
 
     # this contains a file loop in itself 
@@ -78,7 +78,7 @@ def taskB_packaged(path, database_path):
     if all_collected_data:
         log_malware_data(all_collected_data)
 
-        quarantine_files(all_collected_data)
+        quarantine_files(all_collected_data, database_path)
 
 
 if __name__ == "__main__":
@@ -94,6 +94,7 @@ if __name__ == "__main__":
     if all_collected_data:
         log_malware_data(all_collected_data)
 
-        #quarantine_files(all_collected_data)
+        # on if we consider b as a whole task like c 
+        quarantine_files(all_collected_data, database_path)
 
             

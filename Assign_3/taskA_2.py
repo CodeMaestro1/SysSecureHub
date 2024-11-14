@@ -126,8 +126,15 @@ def read_database_hashes(database_file):
 
 
 def search_directory_for_malware_files(directory_path, directory_malware_hashes="malware_signature.txt"):
+    print(directory_path)
     excluded_folders = ['sample_pdfs-20241104T090609Z-001', '__pycache__']
     
+    print(f"Searching for malware in: {directory_path}")
+    file_hashes = generate_hashes_for_files(directory_path)
+    database_hashes = read_database_hashes(directory_malware_hashes) 
+    compare_hashes_with_database(file_hashes, database_hashes)
+
+    # recursive (isn't used in A2)
     for path, folders, files in os.walk(directory_path, topdown=True):
         # Remove excluded folders if they exist in the current directories
         folders[:] = [folder for folder in folders if folder not in excluded_folders]
@@ -141,8 +148,8 @@ def search_directory_for_malware_files(directory_path, directory_malware_hashes=
 
 
 if __name__ == '__main__':
-    current_directory = os.getcwd()
+    # current_directory = os.getcwd()
 
-    create_files(10, 50, output_dir_par=OUTPUT_DIR)
+    # create_files(10, 50, output_dir_par=OUTPUT_DIR)
 
-    search_directory_for_malware_files(current_directory)
+    search_directory_for_malware_files(OUTPUT_DIR)
