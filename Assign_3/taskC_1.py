@@ -3,6 +3,7 @@ from watchdog.events import FileSystemEventHandler
 import time 
 import os 
 
+from config import SEARCH_DIR, SIGNATURE_FILE
 from taskB_1 import taskB_packaged
 
 class FileHandler(FileSystemEventHandler):
@@ -20,7 +21,7 @@ class FileHandler(FileSystemEventHandler):
     
     def handle_directory_change(self, event):
         if event.is_directory:
-            print('searching...')
+            print('Searching...')
             # get path
             search_dir = event.src_path
 
@@ -66,6 +67,4 @@ def real_time_monitor_tool(search_directory, database_path):
 
 if __name__ == "__main__":
 
-    search_dir = 'taskB_1_files/L0D1'
-
-    real_time_monitor_tool(search_dir, 'malware_signature.txt')
+    real_time_monitor_tool(SEARCH_DIR, SIGNATURE_FILE)

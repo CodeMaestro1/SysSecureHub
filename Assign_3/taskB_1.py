@@ -2,7 +2,7 @@ import logging
 import logging.config
 import os
 
-from config import  FILE_SIZE, fake_malicious_string
+from config import  FILE_SIZE, FAKE_MALICIOUS_STRING
 from taskA_2_create_test_files import create_files
 from taskA_2 import generate_hashes_for_files, compare_hashes_with_database, read_database_hashes
 from taskB_2 import quarantine_files
@@ -22,7 +22,7 @@ def create_directory_with_files(path, max_depth, dirs_per_dir=2, files_per_dir=3
     os.makedirs(current_dir, exist_ok=True)
 
     # this contains a file loop in itself 
-    create_files(files_per_dir-len(fake_malicious_string), FILE_SIZE, fake_malicious_string, current_dir, True)
+    create_files(files_per_dir-len(FAKE_MALICIOUS_STRING), FILE_SIZE, FAKE_MALICIOUS_STRING, current_dir, True)
     
     # rec fill the rest
     for i in range(dirs_per_dir):
@@ -95,6 +95,6 @@ if __name__ == "__main__":
         log_malware_data(all_collected_data)
 
         # on if we consider b as a whole task like c 
-        quarantine_files(all_collected_data, database_path)
+        #quarantine_files(all_collected_data, database_path)
 
             

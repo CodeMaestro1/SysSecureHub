@@ -2,7 +2,7 @@ import numpy as np
 from tabulate import tabulate
 import os
 from taskA_2 import calculate_file_hash
-from config import sha_algorithms , folderpath 
+from config import SHA_ALGORITHMS , FOLDER_PATH 
 
 
 def calculate_hashes_for_pdf(folderpath):
@@ -14,7 +14,7 @@ def calculate_hashes_for_pdf(folderpath):
         file_path = os.path.join(folderpath, file)
         if os.path.isfile(file_path):  # Ensure it's a file
             hashes[file] = {}
-            for selected_algorithm in sha_algorithms:
+            for selected_algorithm in SHA_ALGORITHMS:
                 file_hash = calculate_file_hash(file_path, selected_algorithm)
                 hashes[file][selected_algorithm] = file_hash
     return hashes
@@ -47,6 +47,6 @@ def print_tables(tables, hash_funcs, files):
 
 if __name__ == "__main__":
 
-    hashes = calculate_hashes_for_pdf(folderpath)
+    hashes = calculate_hashes_for_pdf(FOLDER_PATH)
     tables, hash_funcs, files = pairwise_compare_hashes(hashes)
     print_tables(tables, hash_funcs, files)

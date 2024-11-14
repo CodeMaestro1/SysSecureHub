@@ -2,8 +2,7 @@ import hashlib
 import os
 import datetime
 
-from config import hash_algorithms, OUTPUT_DIR 
-from taskA_2_create_test_files import create_files
+from config import HASH_ALGORITHMS, OUTPUT_DIR 
 
 malware_list_findings = []
 
@@ -43,7 +42,7 @@ def generate_hashes_for_files(current_directory):
         file_path = os.path.join(current_directory, filename)
         if os.path.isfile(file_path):
             hashes[filename] = {}
-            for algorithm in hash_algorithms:
+            for algorithm in HASH_ALGORITHMS:
                 file_hash = calculate_file_hash(file_path, algorithm)
                 hashes[filename][algorithm] = file_hash
             # Add the file path to the dictionary
@@ -148,8 +147,4 @@ def search_directory_for_malware_files(directory_path, directory_malware_hashes=
 
 
 if __name__ == '__main__':
-    # current_directory = os.getcwd()
-
-    # create_files(10, 50, output_dir_par=OUTPUT_DIR)
-
     search_directory_for_malware_files(OUTPUT_DIR)

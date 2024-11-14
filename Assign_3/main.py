@@ -37,6 +37,7 @@ def main():
     signature_file = os.path.abspath(args.signature_file)
 
     if args.real_time:
+        taskB_packaged(directory_to_scan, signature_file)
         real_time_monitor_tool(directory_to_scan, signature_file)
     else:
         taskB_packaged(directory_to_scan, signature_file)

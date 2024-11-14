@@ -25,8 +25,6 @@ def quarantine_file(filename, fpath):
     Returns:
         bool: returns True if the file was successfully quarantined, False otherwise
     """
-    # how to deal with duplicate name_hash (?)
-    # new_dir_name = f"{filename}_{sha256}"
     new_dir_name = f"{filename}"
     quarantined_fpath = os.path.join(QUARANTINE_PATH, new_dir_name)
 

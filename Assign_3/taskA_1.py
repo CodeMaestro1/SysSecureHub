@@ -4,7 +4,7 @@ import hashlib
 import datetime
 import string
 import random
-from config import TAG, FILE_SIZE, NORMAL_FILE_TAG , fake_malicious_strings , API_ABUSE, HYBRID_ANALYSIS
+from config import TAG, FILE_SIZE, NORMAL_FILE_TAG , FAKE_MALICIOUS_STRINGS , API_ABUSE, HYBRID_ANALYSIS
 
 
 def get_rand_string(length):
@@ -204,4 +204,4 @@ if __name__ == "__main__":
 
         non_malicious_data = generate_non_malicious_data(21)
         write_non_malware_signature_file(file, non_malicious_data)
-        write_fake_malicious_data(file, fake_malicious_strings)
+        write_fake_malicious_data(file, FAKE_MALICIOUS_STRINGS)
