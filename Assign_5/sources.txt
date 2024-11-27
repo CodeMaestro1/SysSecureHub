@@ -1,0 +1,39 @@
+interface/filter related guide:
+https://www.tcpdump.org/pcap.html
+
+findalldevs():
+https://www.winpcap.org/docs/docs_412/html/group__wpcapfunc.html#ga7b128eaeef627b408f6a6e2a2f5eb45d
+&
+https://www.tcpdump.org/manpages/pcap_findalldevs.3pcap.html
+
+pcap_loop:
+http://yuba.stanford.edu/~casado/pcap/section3.html
+&
+https://www.winpcap.org/docs/docs_412/html/group__wpcap__tut3.html
+
+header related stuff for stats:
+https://www.devdungeon.com/content/using-libpcap-c
+
+ethernet.h consts:
+https://sites.uclouvain.be/SystInfo/usr/include/net/ethernet.h.html
+
+host/net endian conv. funcs:
+https://www.gta.ufrj.br/ensino/eel878/sockets/htonsman.html
+
+netinet ip/ip6 source code:
+https://github.com/leostratus/netinet/blob/master/ip.h
+https://github.com/leostratus/netinet/blob/master/ip6.h
+
+ip/ip6 header info:
+https://huangjianyu.wordpress.com/2012/04/29/basic-packet-sniffer-construction-from-the-ground-up/
+
+ip src/dst positions:
+https://stackoverflow.com/questions/21222369/getting-ip-address-of-a-packet-in-pcap-file
+
+constructing ip4 header structs:
+https://stackoverflow.com/questions/31121057/ip-struct-c-parameters
+https://www.geeksforgeeks.org/introduction-and-ipv4-datagram-header/
+
+constructing ip6 header structs:
+https://www.geeksforgeeks.org/internet-protocol-version-6-ipv6-header/
+https://stackoverflow.com/questions/26531531/efficient-way-to-store-ipv4-ipv6-addresses

