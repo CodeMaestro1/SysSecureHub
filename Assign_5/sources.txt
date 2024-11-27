@@ -37,3 +37,12 @@ https://www.geeksforgeeks.org/introduction-and-ipv4-datagram-header/
 constructing ip6 header structs:
 https://www.geeksforgeeks.org/internet-protocol-version-6-ipv6-header/
 https://stackoverflow.com/questions/26531531/efficient-way-to-store-ipv4-ipv6-addresses
+
+print metrics on exit solution:
+https://stackoverflow.com/questions/4217037/catch-ctrl-c-in-c
+
+network flow definitions:
+https://github.com/drnpkr/flowRecorder
+
+uthash.h:
+https://troydhanson.github.io/uthash/

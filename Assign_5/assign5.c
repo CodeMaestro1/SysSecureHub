@@ -1,5 +1,77 @@
 #include "assign5.h"
 
+// metrics struct  
+metrics_t metrics = {0, 0, 0, 0, 0, 0, 0, 0}; // metrics struct to measure a bunch of stuff (we need the global after all, very sad)
+
+// flow counter (this can obviously be done 1000x more efficiently with a hash table but I don't think there is a built in one, so yeah - maybe make key into a sha256/md5 hash to save on space)
+flow_entry_t flows[MAX_FLOWS];
+
+int find_flow(flow_t *key) {
+    for (int i = 0; i < metrics.net_flows; i++) {
+        if (strcmp(flows[i].key.ip_src, key->ip_src) == 0 &&
+            strcmp(flows[i].key.ip_dst, key->ip_dst) == 0 &&
+            flows[i].key.src_port == key->src_port &&
+            flows[i].key.dst_port == key->dst_port &&
+            flows[i].key.protocol == key->protocol) {
+                return i;
+        }
+    }
+    return -1;
+}
+
+int add_flow(flow_t *key) {
+    int index = find_flow(key);
+    if (index != -1) {
+        flows[index].counter++;
+        return 0; // no new flow
+    } else {
+        // add entry if not found 
+        if (metrics.net_flows < MAX_FLOWS) {
+            int num = metrics.net_flows;
+            flows[num].key = *key;
+            flows[num].counter = 1;
+            return 1; // new flow 
+        } else {
+            printf("MAX_FLOWS = %d reached\n", MAX_FLOWS);
+            return 0; // no new flow (?)
+        }
+   }
+}
+
+void print_flows() {
+    printf("Flow Count: %d\n", metrics.net_flows);
+    for (int i = 0; i < metrics.net_flows; i++) {
+        printf("Flow %d:\n", i + 1);
+        printf("  Source IP: %s | ", flows[i].key.ip_src);
+        printf("Destination IP: %s | ", flows[i].key.ip_dst);
+        printf("Source Port: %d | ", flows[i].key.src_port);
+        printf("Destination Port: %d | ", flows[i].key.dst_port);
+        printf("Protocol: %d | ", flows[i].key.protocol);
+        printf("Packet Count: %d\n", flows[i].counter);
+        printf("----------------------------------------------------------------------------------------------------------------------------------\n");
+    }
+}
+
+void INThandler(int sig) {
+    // Ignore additional signals while handling this one
+    signal(sig, SIG_IGN);
+
+    // Print statistics before exiting
+    printf("\nStats:\n");
+    printf("Total packets: %d\n", metrics.total_packets);
+    printf("Total TCP packets: %d\n", metrics.tcp_count);
+    printf("Total UDP packets: %d\n", metrics.udp_count);
+    printf("Total bytes of TCP packets: %d\n", metrics.tcp_bytes);
+    printf("Total bytes of UDP packets: %d\n", metrics.udp_bytes);
+    printf("Total flows: %d\n", metrics.net_flows);
+    printf("Total TCP flows: %d\n", metrics.tcp_flows);
+    printf("Total UDP flows: %d\n", metrics.udp_flows);
+
+    // print_flows(); // for debugging
+    
+    exit(0);
+}
+
 void print_all(char* type, u_char* header) {
     // ip headers 
     if (strcmp(type, "ipv4") == 0) {
@@ -63,7 +135,7 @@ void print_all(char* type, u_char* header) {
         if (tcp_hdr->th_flags & TH_PUSH) printf("PUSH ");
         if (tcp_hdr->th_flags & TH_ACK) printf("ACK ");
         if (tcp_hdr->th_flags & TH_URG) printf("URG ");
-        // if (tcp_hdr->th_flags & TH_ECE) printf("ECE "); // these exist in the source, but not on my machine so idk
+        // if (tcp_hdr->th_flags & TH_ECE) printf("ECE "); // these exist in the source, but not on my machine's source code so idk
         // if (tcp_hdr->th_flags & TH_CWR) printf("CWR ");
         printf("\n");
 
@@ -84,9 +156,11 @@ void print_all(char* type, u_char* header) {
 
 void packet_handler(u_char *user, const struct pcap_pkthdr* header, const u_char* packet)
 {
-    metrics_t* metrics = (metrics_t*) user;
+    // metrics_t* metrics = (metrics_t*) user;
 
-    metrics->total_packets++;
+    // metrics->total_packets++;
+
+    metrics.total_packets++;
 
     /* Check if packet is IPV4 or IPV6 */ 
     struct ether_header *eth_header;
@@ -118,7 +192,7 @@ void packet_handler(u_char *user, const struct pcap_pkthdr* header, const u_char
         inet_ntop(AF_INET, &ip4_hdr->ip_src, ip_src, INET_ADDRSTRLEN);
         inet_ntop(AF_INET, &ip4_hdr->ip_dst, ip_dst, INET_ADDRSTRLEN);
 
-        print_all("ipv4", (u_char*) ip4_hdr);
+        // print_all("ipv4", (u_char*) ip4_hdr);
     }
     // IPV6 (ipv6 portion untested because my vm can't run ipv6 apparently - will figure out later)
     else if (ether_type == ETHERTYPE_IPV6) {
@@ -133,25 +207,28 @@ void packet_handler(u_char *user, const struct pcap_pkthdr* header, const u_char
         inet_ntop(AF_INET6, &ip6_header->ip6_src, ip_src, INET6_ADDRSTRLEN);
         inet_ntop(AF_INET6, &ip6_header->ip6_dst, ip_dst, INET6_ADDRSTRLEN);
 
-        print_all("ipv6", (u_char*) ip6_header);
+        // print_all("ipv6", (u_char*) ip6_header);
     }
 
-    printf("\n------------\n");
+    // printf("\n------------\n");
 
     // Resolve TCP/UDP packets 
     if (protocol != IPPROTO_TCP && protocol != IPPROTO_UDP) {
-
+        return;
     }
+
+    uint16_t src_port;
+    uint16_t dst_port;
 
     if (protocol == IPPROTO_TCP) {
         struct tcphdr* tcp_header = (struct tcphdr*) (ip_header + ip_header_len);
 
-        metrics->tcp_count++;
-        metrics->tcp_bytes += ntohs(header->len); // full package len (?)
+        metrics.tcp_count++;
+        metrics.tcp_bytes += ntohs(header->len); // full package len (?)
 
         // get needed vars
-        uint16_t src_port = ntohs(tcp_header->th_sport);
-        uint16_t dst_port = ntohs(tcp_header->th_dport);
+        src_port = ntohs(tcp_header->th_sport);
+        dst_port = ntohs(tcp_header->th_dport);
         uint8_t tcp_hdr_len = tcp_header->th_off * 4;
         int payload_len = ntohs(header->len) - ip_header_len - tcp_hdr_len;
 
@@ -163,16 +240,18 @@ void packet_handler(u_char *user, const struct pcap_pkthdr* header, const u_char
         printf("Destination Port: %d\n", dst_port);
         printf("Header Length: %d bytes\n", tcp_hdr_len);
         printf("Payload Length: %d bytes\n", payload_len);
+
+        // print_all("tcp", (u_char*) tcp_header);
     }
     else if (protocol == IPPROTO_UDP) {
         struct udphdr* udp_header = (struct udphdr*) (ip_header + ip_header_len);
 
-        metrics->udp_count++;
-        metrics->udp_bytes += ntohs(header->len); // full package len (?)
+        metrics.udp_count++;
+        metrics.udp_bytes += ntohs(header->len); // full package len (?)
 
         // Extract UDP details
-        uint16_t src_port = ntohs(udp_header->uh_sport);
-        uint16_t dst_port = ntohs(udp_header->uh_dport);
+        src_port = ntohs(udp_header->uh_sport);
+        dst_port = ntohs(udp_header->uh_dport);
         int udp_hdr_len = sizeof(struct udphdr);
         int payload_len = ntohs(header->len) - ip_header_len - udp_hdr_len;
 
@@ -184,12 +263,29 @@ void packet_handler(u_char *user, const struct pcap_pkthdr* header, const u_char
         printf("Destination Port: %d\n", dst_port);
         printf("Header Length: %d bytes\n", udp_hdr_len);
         printf("Payload Length: %d bytes\n", payload_len);
+
+        // print_all("udp", (u_char*) udp_header);
     }
 
     printf("\n===============\n");
 
+    // Flows 
 
-    // Flow counters 
+    flow_t key;
+    strcpy(key.ip_src, ip_src);
+    strcpy(key.ip_dst, ip_dst);
+    key.src_port = src_port;
+    key.dst_port = dst_port;
+    key.protocol = protocol;
+
+    if (add_flow(&key) == 1) { // if needed
+        metrics.net_flows++;
+        if (protocol == IPPROTO_TCP) {
+            metrics.tcp_flows++;
+        } else if (protocol == IPPROTO_UDP) {
+            metrics.udp_flows++;
+        }
+    }  
 
     // Retransmitted packets 
 
@@ -234,6 +330,10 @@ void print_help() {
 }
 
 int main(int argc, char *argv[]) {
+    
+    // signal handle to print exit 
+    signal(SIGINT, INThandler);
+
     int opt;
     char *interface = NULL;
     char *pcap_file = NULL;
@@ -301,9 +401,6 @@ int main(int argc, char *argv[]) {
                 return 1;
             }
         }
-
-        // online packet sniffing loop 
-        metrics_t metrics = {0, 0, 0, 0, 0, 0}; // metrics struct to measure a bunch of stuff (instead of making a bunch of globals)
 
         pcap_loop(handle, 0, packet_handler, (u_char*) &metrics);
         
