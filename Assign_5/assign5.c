@@ -1,10 +1,17 @@
 #include "assign5.h"
 
+
+/* Global Variables */
 // metrics struct  
 metrics_t metrics = {0, 0, 0, 0, 0, 0, 0, 0}; // metrics struct to measure a bunch of stuff (we need the global after all, very sad)
-
-// flow counter (this can obviously be done 1000x more efficiently with a hash table but I don't think there is a built in one, so yeah - maybe make key into a sha256/md5 hash to save on space)
+// flow counter
 flow_entry_t flows[MAX_FLOWS];
+// log files 
+FILE *logfile = NULL;
+FILE *outfile = NULL;
+// session handle
+pcap_t* handle;
+
 
 int find_flow(flow_t *key) {
     for (int i = 0; i < metrics.net_flows; i++) {
@@ -56,20 +63,13 @@ void INThandler(int sig) {
     // Ignore additional signals while handling this one
     signal(sig, SIG_IGN);
 
-    // Print statistics before exiting
-    printf("\nStats:\n");
-    printf("Total packets: %d\n", metrics.total_packets);
-    printf("Total TCP packets: %d\n", metrics.tcp_count);
-    printf("Total UDP packets: %d\n", metrics.udp_count);
-    printf("Total bytes of TCP packets: %d\n", metrics.tcp_bytes);
-    printf("Total bytes of UDP packets: %d\n", metrics.udp_bytes);
-    printf("Total flows: %d\n", metrics.net_flows);
-    printf("Total TCP flows: %d\n", metrics.tcp_flows);
-    printf("Total UDP flows: %d\n", metrics.udp_flows);
+    if (handle != NULL) {
+        pcap_breakloop(handle);
+    }
 
     // print_flows(); // for debugging
     
-    exit(0);
+    // exit(0);
 }
 
 void print_all(char* type, u_char* header) {
@@ -162,6 +162,13 @@ void packet_handler(u_char *user, const struct pcap_pkthdr* header, const u_char
 
     metrics.total_packets++;
 
+    // log full packet 
+    fprintf(logfile, "\nPacket #%d:\n", metrics.total_packets);
+    // fwrite(packet, 1, header->len, logfile);
+    for (int i = 0; i < header->len; i++) {
+        fprintf(logfile, "%02x ", packet[i]);
+    }
+
     /* Check if packet is IPV4 or IPV6 */ 
     struct ether_header *eth_header;
     eth_header = (struct ether_header *) packet;
@@ -210,8 +217,6 @@ void packet_handler(u_char *user, const struct pcap_pkthdr* header, const u_char
         // print_all("ipv6", (u_char*) ip6_header);
     }
 
-    // printf("\n------------\n");
-
     // Resolve TCP/UDP packets 
     if (protocol != IPPROTO_TCP && protocol != IPPROTO_UDP) {
         return;
@@ -232,14 +237,18 @@ void packet_handler(u_char *user, const struct pcap_pkthdr* header, const u_char
         uint8_t tcp_hdr_len = tcp_header->th_off * 4;
         int payload_len = ntohs(header->len) - ip_header_len - tcp_hdr_len;
 
-        printf("TCP Packet:\n");
-        printf("Protocol Number: %d\n", protocol);
-        printf("Source Address: %s\n", ip_src);
-        printf("Destination Address: %s\n", ip_dst);
-        printf("Source Port: %d\n", src_port);
-        printf("Destination Port: %d\n", dst_port);
-        printf("Header Length: %d bytes\n", tcp_hdr_len);
-        printf("Payload Length: %d bytes\n", payload_len);
+        FILE* files[] = {stdout, outfile};
+        for (int i = 0; i < 2; i++) {
+            fprintf(files[i], "TCP Packet:\n");
+            fprintf(files[i], "Protocol Number: %d\n", protocol);
+            fprintf(files[i], "Source Address: %s\n", ip_src);
+            fprintf(files[i], "Destination Address: %s\n", ip_dst);
+            fprintf(files[i], "Source Port: %d\n", src_port);
+            fprintf(files[i], "Destination Port: %d\n", dst_port);
+            fprintf(files[i], "Header Length: %d bytes\n", tcp_hdr_len);
+            fprintf(files[i], "Payload Length: %d bytes\n", payload_len);
+            fprintf(files[i], "======================================\n");
+        }
 
         // print_all("tcp", (u_char*) tcp_header);
     }
@@ -255,19 +264,23 @@ void packet_handler(u_char *user, const struct pcap_pkthdr* header, const u_char
         int udp_hdr_len = sizeof(struct udphdr);
         int payload_len = ntohs(header->len) - ip_header_len - udp_hdr_len;
 
-        printf("UDP Packet:\n");
-        printf("Protocol Number: %d\n", protocol);
-        printf("Source Address: %s\n", ip_src);
-        printf("Destination Address: %s\n", ip_dst);
-        printf("Source Port: %d\n", src_port);
-        printf("Destination Port: %d\n", dst_port);
-        printf("Header Length: %d bytes\n", udp_hdr_len);
-        printf("Payload Length: %d bytes\n", payload_len);
+        FILE* files[] = {stdout, outfile};
+        for (int i = 0; i < 2; i++) {
+            fprintf(files[i], "UDP Packet:\n");
+            fprintf(files[i], "Protocol Number: %d\n", protocol);
+            fprintf(files[i], "Source Address: %s\n", ip_src);
+            fprintf(files[i], "Destination Address: %s\n", ip_dst);
+            fprintf(files[i], "Source Port: %d\n", src_port);
+            fprintf(files[i], "Destination Port: %d\n", dst_port);
+            fprintf(files[i], "Header Length: %d bytes\n", udp_hdr_len);
+            fprintf(files[i], "Payload Length: %d bytes\n", payload_len);
+            fprintf(files[i], "======================================\n");
+
+        }
 
         // print_all("udp", (u_char*) udp_header);
     }
 
-    printf("\n===============\n");
 
     // Flows 
 
@@ -364,7 +377,7 @@ int main(int argc, char *argv[]) {
     if (interface) {
         /* Interface vars */
         char errbuf[PCAP_ERRBUF_SIZE];
-        pcap_t *handle;
+        // pcap_t *handle;
         /* Filter vars */
         struct bpf_program fp;
         bpf_u_int32 mask;
@@ -402,10 +415,43 @@ int main(int argc, char *argv[]) {
             }
         }
 
+        // open related files 
+        logfile = fopen(LOGFILE, "w");
+        if (!logfile) {
+            perror("Error opening log file");
+            return 1;
+        }
+        outfile = fopen(ONLINE_OUTPUT_FILE, "w");
+        if (!outfile) {
+            perror("Error opening online output file");
+            return 1;
+        }
+
+        // online loop
         pcap_loop(handle, 0, packet_handler, (u_char*) &metrics);
+
+        // continues here after ^C
+
+        // Print statistics before exiting
+        FILE* files[] = {stdout, outfile};
+        for (int i = 0; i < 2; i++) {
+            fprintf(files[i], "\nStats:\n");
+            fprintf(files[i], "Total packets: %d\n", metrics.total_packets);
+            fprintf(files[i], "Total TCP packets: %d\n", metrics.tcp_count);
+            fprintf(files[i], "Total UDP packets: %d\n", metrics.udp_count);
+            fprintf(files[i], "Total bytes of TCP packets: %d\n", metrics.tcp_bytes);
+            fprintf(files[i], "Total bytes of UDP packets: %d\n", metrics.udp_bytes);
+            fprintf(files[i], "Total flows: %d\n", metrics.net_flows);
+            fprintf(files[i], "Total TCP flows: %d\n", metrics.tcp_flows);
+            fprintf(files[i], "Total UDP flows: %d\n\n\n", metrics.udp_flows);
+        }
         
         // close session 
         pcap_close(handle);
+
+        //close files
+        fclose(outfile);
+        fclose(logfile);
 
         return 0;
     }

@@ -43,6 +43,3 @@ https://stackoverflow.com/questions/4217037/catch-ctrl-c-in-c
 
 network flow definitions:
 https://github.com/drnpkr/flowRecorder
-
-uthash.h:
-https://troydhanson.github.io/uthash/

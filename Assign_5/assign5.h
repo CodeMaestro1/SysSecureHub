@@ -20,6 +20,10 @@
 
 #define DEFAULT_FILTER ""
 #define MAX_FLOWS 16384 //a bit lazy but yeah
+#define LOGFILE "log.txt"
+#define ONLINE_OUTPUT_FILE "online_output.txt"
+#define OFFLINE_OUTPUT_FILE "offline_output.txt"
+
 
 typedef struct {
     int tcp_count;
