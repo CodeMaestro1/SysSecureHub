@@ -19,7 +19,7 @@
 #include <signal.h>
 
 #define DEFAULT_FILTER ""
-#define MAX_FLOWS 16384 //a bit lazy but yeah
+#define MAX_FLOWS 8*16384 //a bit lazy but yeah
 #define LOGFILE "log.txt"
 #define ONLINE_OUTPUT_FILE "online_output.txt"
 #define OFFLINE_OUTPUT_FILE "offline_output.txt"
@@ -29,8 +29,8 @@ typedef struct {
     int tcp_count;
     int udp_count;
     int total_packets;
-    int tcp_bytes;
-    int udp_bytes;
+    unsigned long tcp_bytes;
+    unsigned long udp_bytes;
     int net_flows;
     int tcp_flows;
     int udp_flows;

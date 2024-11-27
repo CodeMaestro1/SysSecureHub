@@ -3,7 +3,7 @@
 
 /* Global Variables */
 // metrics struct  
-metrics_t metrics = {0, 0, 0, 0, 0, 0, 0, 0}; // metrics struct to measure a bunch of stuff (we need the global after all, very sad)
+metrics_t metrics = {0, 0, 0, 0, 0, 0, 0, 0}; // could technically go local again, but not worth it 
 // flow counter
 flow_entry_t flows[MAX_FLOWS];
 // log files 
@@ -12,6 +12,12 @@ FILE *outfile = NULL;
 // session handle
 pcap_t* handle;
 
+
+void check() {
+    int test = 0;
+    printf("checking...\n");
+    scanf("%d", &test);
+}
 
 int find_flow(flow_t *key) {
     for (int i = 0; i < metrics.net_flows; i++) {
@@ -65,6 +71,8 @@ void INThandler(int sig) {
 
     if (handle != NULL) {
         pcap_breakloop(handle);
+    } else { // no session active -> exit immed
+        exit(0);
     }
 
     // print_flows(); // for debugging
@@ -163,10 +171,12 @@ void packet_handler(u_char *user, const struct pcap_pkthdr* header, const u_char
     metrics.total_packets++;
 
     // log full packet 
-    fprintf(logfile, "\nPacket #%d:\n", metrics.total_packets);
-    // fwrite(packet, 1, header->len, logfile);
-    for (int i = 0; i < header->len; i++) {
-        fprintf(logfile, "%02x ", packet[i]);
+    if (logfile != NULL) {
+        fprintf(logfile, "\nPacket #%d:\n", metrics.total_packets);
+        // print packet as a hexstream
+        for (int i = 0; i < header->len; i++) {
+            fprintf(logfile, "%02x ", packet[i]);
+        }
     }
 
     /* Check if packet is IPV4 or IPV6 */ 
@@ -199,7 +209,7 @@ void packet_handler(u_char *user, const struct pcap_pkthdr* header, const u_char
         inet_ntop(AF_INET, &ip4_hdr->ip_src, ip_src, INET_ADDRSTRLEN);
         inet_ntop(AF_INET, &ip4_hdr->ip_dst, ip_dst, INET_ADDRSTRLEN);
 
-        // print_all("ipv4", (u_char*) ip4_hdr);
+        // print_all("ipv4", (u_char*) ip4_hdr); // debug 
     }
     // IPV6 (ipv6 portion untested because my vm can't run ipv6 apparently - will figure out later)
     else if (ether_type == ETHERTYPE_IPV6) {
@@ -214,7 +224,7 @@ void packet_handler(u_char *user, const struct pcap_pkthdr* header, const u_char
         inet_ntop(AF_INET6, &ip6_header->ip6_src, ip_src, INET6_ADDRSTRLEN);
         inet_ntop(AF_INET6, &ip6_header->ip6_dst, ip_dst, INET6_ADDRSTRLEN);
 
-        // print_all("ipv6", (u_char*) ip6_header);
+        // print_all("ipv6", (u_char*) ip6_header); // debug 
     }
 
     // Resolve TCP/UDP packets 
@@ -250,7 +260,7 @@ void packet_handler(u_char *user, const struct pcap_pkthdr* header, const u_char
             fprintf(files[i], "======================================\n");
         }
 
-        // print_all("tcp", (u_char*) tcp_header);
+        // print_all("tcp", (u_char*) tcp_header); // debug 
     }
     else if (protocol == IPPROTO_UDP) {
         struct udphdr* udp_header = (struct udphdr*) (ip_header + ip_header_len);
@@ -278,7 +288,7 @@ void packet_handler(u_char *user, const struct pcap_pkthdr* header, const u_char
 
         }
 
-        // print_all("udp", (u_char*) udp_header);
+        // print_all("udp", (u_char*) udp_header); // debug 
     }
 
 
@@ -373,18 +383,20 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    // -i <interface> 
+    // error (i and r)
+    if (!interface && !pcap_file) {
+        fprintf(stderr, "Error, use -h for help.\n");
+        return 1;
+    }
+
+    /* ONLINE OPEN | -i <interface> */
     if (interface) {
-        /* Interface vars */
+        /* vars */
         char errbuf[PCAP_ERRBUF_SIZE];
-        // pcap_t *handle;
         /* Filter vars */
         struct bpf_program fp;
         bpf_u_int32 mask;
         bpf_u_int32 net;
-        /* Sniffing vars */
-        struct pcap_pkthdr header;
-        const u_char *packet;
 
         printf("Monitoring interface: %s\n", interface);
 
@@ -439,8 +451,8 @@ int main(int argc, char *argv[]) {
             fprintf(files[i], "Total packets: %d\n", metrics.total_packets);
             fprintf(files[i], "Total TCP packets: %d\n", metrics.tcp_count);
             fprintf(files[i], "Total UDP packets: %d\n", metrics.udp_count);
-            fprintf(files[i], "Total bytes of TCP packets: %d\n", metrics.tcp_bytes);
-            fprintf(files[i], "Total bytes of UDP packets: %d\n", metrics.udp_bytes);
+            fprintf(files[i], "Total bytes of TCP packets: %lu\n", metrics.tcp_bytes);
+            fprintf(files[i], "Total bytes of UDP packets: %lu\n", metrics.udp_bytes);
             fprintf(files[i], "Total flows: %d\n", metrics.net_flows);
             fprintf(files[i], "Total TCP flows: %d\n", metrics.tcp_flows);
             fprintf(files[i], "Total UDP flows: %d\n\n\n", metrics.udp_flows);
@@ -456,15 +468,72 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    // -r <file>   
+    /* OFFLINE OPEN | -r <file> */  
     if (pcap_file) {
-        printf("Analyzing PCAP file: %s\n", pcap_file);
-    }
+        /* vars */
+        char errbuf[PCAP_ERRBUF_SIZE];
+        /* Filter vars */
+        struct bpf_program fp;
+        bpf_u_int32 mask;
+        bpf_u_int32 net;
 
-    // error (i and r)
-    if (!interface && !pcap_file) {
-        fprintf(stderr, "Error, use -h for help.\n");
-        return 1;
+        printf("Analyzing PCAP file: %s\n", pcap_file);
+
+        // open offline 
+        handle = pcap_open_offline(pcap_file, errbuf);
+        if (handle == NULL) {
+            fprintf(stderr, "Couldn't open file %s | %s\n", pcap_file, errbuf);
+            return 1;
+        }
+
+        // -f <filter>      
+        if (filter) {
+            printf("Using filter: %s\n", filter);
+            
+            // compile and set filter (if needed)
+            if (pcap_compile(handle, &fp, filter, 0, net) == -1) {
+                fprintf(stderr, "Couldn't compile | %s\n", pcap_geterr(handle));
+                return 1;
+            }
+            if (pcap_setfilter(handle, &fp) == -1) {
+                fprintf(stderr, "Couldn't set filter %s | %s\n", filter, pcap_geterr(handle));
+                return 1;
+            }
+        }        
+
+        // open related files 
+        outfile = fopen(OFFLINE_OUTPUT_FILE, "w");
+        if (!outfile) {
+            perror("Error opening offline output file");
+            return 1;
+        }
+
+        // offline loop
+        pcap_loop(handle, 0, packet_handler, (u_char*) &metrics);
+
+        // continues here after ^C
+
+        // Print statistics before exiting
+        FILE* files[] = {stdout, outfile};
+        for (int i = 0; i < 2; i++) {
+            fprintf(files[i], "\nStats:\n");
+            fprintf(files[i], "Total packets: %d\n", metrics.total_packets);
+            fprintf(files[i], "Total TCP packets: %d\n", metrics.tcp_count);
+            fprintf(files[i], "Total UDP packets: %d\n", metrics.udp_count);
+            fprintf(files[i], "Total bytes of TCP packets: %lu\n", metrics.tcp_bytes);
+            fprintf(files[i], "Total bytes of UDP packets: %lu\n", metrics.udp_bytes);
+            fprintf(files[i], "Total flows: %d\n", metrics.net_flows);
+            fprintf(files[i], "Total TCP flows: %d\n", metrics.tcp_flows);
+            fprintf(files[i], "Total UDP flows: %d\n\n\n", metrics.udp_flows);
+        }
+        
+        // close session 
+        pcap_close(handle);
+
+        //close files
+        fclose(outfile);
+
+        return 0;
     }
 
     return 0;
