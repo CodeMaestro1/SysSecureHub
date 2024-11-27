@@ -1,12 +1,94 @@
 #include "assign5.h"
 
+void print_all(char* type, u_char* header) {
+    // ip headers 
+    if (strcmp(type, "ipv4") == 0) {
+        struct ip* ip4_hdr = (struct ip*) header;
+
+        printf("IPv4 Header:\n");
+        printf("Version: %d\n", ip4_hdr->ip_v);
+        printf("Header Length: %d bytes\n", ip4_hdr->ip_hl * 4); 
+        printf("Type of Service: 0x%02x\n", ip4_hdr->ip_tos); 
+        printf("Total Length: %d\n", ntohs(ip4_hdr->ip_len));
+        printf("Identification: 0x%04x\n", ntohs(ip4_hdr->ip_id)); 
+        printf("Flags and Fragment Offset: 0x%04x\n", ntohs(ip4_hdr->ip_off)); 
+        printf("Time to Live (TTL): %d\n", ip4_hdr->ip_ttl);
+        printf("Protocol: %d\n", ip4_hdr->ip_p);
+        printf("Checksum: 0x%04x\n", ntohs(ip4_hdr->ip_sum));
+        char src_ip[INET_ADDRSTRLEN];
+        char dst_ip[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &ip4_hdr->ip_src, src_ip, INET_ADDRSTRLEN);
+        inet_ntop(AF_INET, &ip4_hdr->ip_dst, dst_ip, INET_ADDRSTRLEN);
+        printf("Source Address: %s\n", src_ip);
+        printf("Destination Address: %s\n", dst_ip);
+    } 
+    else if (strcmp(type, "ipv6") == 0) {
+        struct ip6_hdr* ip6_header = (struct ip6_hdr*) header;
+
+        printf("IPv6 Header:\n");
+        printf("Version: %d\n", (ip6_header->ip6_vfc >> 4) & 0x0F); 
+        printf("Traffic Class: 0x%02x\n", (ip6_header->ip6_vfc & 0x0F) << 4 | (ip6_header->ip6_flow >> 16)); 
+        printf("Flow Label: 0x%05x\n", ip6_header->ip6_flow & 0xFFFFF); 
+        printf("Payload Length: %d\n", ntohs(ip6_header->ip6_plen)); 
+        printf("Next Header: %d\n", ip6_header->ip6_nxt); 
+        printf("Hop Limit: %d\n", ip6_header->ip6_hlim); 
+        char src_ip[INET6_ADDRSTRLEN];
+        char dst_ip[INET6_ADDRSTRLEN];
+        inet_ntop(AF_INET6, &ip6_header->ip6_src, src_ip, INET6_ADDRSTRLEN);
+        inet_ntop(AF_INET6, &ip6_header->ip6_dst, dst_ip, INET6_ADDRSTRLEN);
+        printf("Source Address: %s\n", src_ip);
+        printf("Destination Address: %s\n", dst_ip);
+    }
+
+    // tcp/udp
+    if (strcmp(type, "tcp") == 0) {
+        struct tcphdr* tcp_hdr = (struct tcphdr*) header;
+
+        printf("TCP Header:\n");
+        printf("Source Port: %u\n", ntohs(tcp_hdr->th_sport));
+        printf("Destination Port: %u\n", ntohs(tcp_hdr->th_dport));
+        printf("Sequence Number: %u\n", ntohl(tcp_hdr->th_seq));
+        printf("Acknowledgment Number: %u\n", ntohl(tcp_hdr->th_ack));
+
+        // Handling byte order for th_off and th_x2
+        printf("Data Offset: %u\n", tcp_hdr->th_off);
+        printf("Unused field (th_x2): %u\n", tcp_hdr->th_x2);
+
+        // Print TCP flags
+        printf("Flags: 0x%x\n", tcp_hdr->th_flags);
+        printf("Flags: ");
+        if (tcp_hdr->th_flags & TH_FIN) printf("FIN ");
+        if (tcp_hdr->th_flags & TH_SYN) printf("SYN ");
+        if (tcp_hdr->th_flags & TH_RST) printf("RST ");
+        if (tcp_hdr->th_flags & TH_PUSH) printf("PUSH ");
+        if (tcp_hdr->th_flags & TH_ACK) printf("ACK ");
+        if (tcp_hdr->th_flags & TH_URG) printf("URG ");
+        // if (tcp_hdr->th_flags & TH_ECE) printf("ECE "); // these exist in the source, but not on my machine so idk
+        // if (tcp_hdr->th_flags & TH_CWR) printf("CWR ");
+        printf("\n");
+
+        printf("Window: %u\n", ntohs(tcp_hdr->th_win));
+        printf("Checksum: 0x%x\n", ntohs(tcp_hdr->th_sum));
+        printf("Urgent Pointer: %u\n", ntohs(tcp_hdr->th_urp));
+    } 
+    else if (strcmp(type, "udp") == 0) {
+        struct udphdr* udp_hdr = (struct udphdr*) header;
+
+        printf("UDP Header:\n");
+        printf("Source Port: %u\n", ntohs(udp_hdr->uh_sport));
+        printf("Destination Port: %u\n", ntohs(udp_hdr->uh_dport));
+        printf("UDP Length: %u\n", ntohs(udp_hdr->uh_ulen));
+        printf("UDP Checksum: 0x%x\n", ntohs(udp_hdr->uh_sum));
+    }
+}
+
 void packet_handler(u_char *user, const struct pcap_pkthdr* header, const u_char* packet)
 {
     metrics_t* metrics = (metrics_t*) user;
 
     metrics->total_packets++;
 
-    // Check if packet is IPV4 or IPV6
+    /* Check if packet is IPV4 or IPV6 */ 
     struct ether_header *eth_header;
     eth_header = (struct ether_header *) packet;
     uint16_t ether_type = ntohs(eth_header->ether_type); 
@@ -16,17 +98,11 @@ void packet_handler(u_char *user, const struct pcap_pkthdr* header, const u_char
         return;
     }
 
-    // Resolve IPV4/IPV6 packets
-    /* Pointers to start point of various headers */
+    /* Resolve IPV4/IPV6 packets */
     const u_char *ip_header;
-    const u_char *tcp_header;
-    const u_char *payload;
-    /* Header lengths in bytes */
-    int ethernet_header_length = 14; /* Doesn't change */
-    int ip_header_length;
-    int tcp_header_length;
-    int payload_length;
-
+    char ip_src[INET6_ADDRSTRLEN];
+    char ip_dst[INET6_ADDRSTRLEN];
+    int ip_header_len;
     uint8_t protocol;
 
     // IPV4
@@ -34,48 +110,84 @@ void packet_handler(u_char *user, const struct pcap_pkthdr* header, const u_char
         struct ip* ip4_hdr = (struct ip*) (packet + sizeof(struct ether_header)); // pointer starts after ether header
         
         ip_header = (u_char*) ip4_hdr;
-        ip_header_length = ip4_hdr->ip_hl * 4;  // Corrected calculation
+        ip_header_len = ip4_hdr->ip_hl * 4;
         protocol = ip4_hdr->ip_p;
 
-        printf("IPv4 Header:\n");
-        printf("Version: %d\n", ip4_hdr->ip_v);                // IP version (4)
-        printf("Header Length: %d bytes\n", ip4_hdr->ip_hl * 4);  // Header length in bytes
-        printf("Type of Service: 0x%02x\n", ip4_hdr->ip_tos);    // Type of Service (TOS)
-        printf("Total Length: %d\n", ntohs(ip4_hdr->ip_len));    // Total Length (in bytes)
-        printf("Identification: 0x%04x\n", ntohs(ip4_hdr->ip_id)); // Identification field
-        printf("Flags and Fragment Offset: 0x%04x\n", ntohs(ip4_hdr->ip_off)); // Flags & Fragment Offset
-        printf("Time to Live (TTL): %d\n", ip4_hdr->ip_ttl);      // TTL
-        printf("Protocol: %d\n", ip4_hdr->ip_p);                  // Protocol (e.g., TCP = 6, UDP = 17, etc.)
-        printf("Checksum: 0x%04x\n", ntohs(ip4_hdr->ip_sum));     // Checksum
-        printf("Source Address: %s\n", inet_ntoa(ip4_hdr->ip_src)); // Source IP address
-        printf("Destination Address: %s\n", inet_ntoa(ip4_hdr->ip_dst)); // Destination IP address
+        char ip_src[INET_ADDRSTRLEN];
+        char ip_dst[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &ip4_hdr->ip_src, ip_src, INET_ADDRSTRLEN);
+        inet_ntop(AF_INET, &ip4_hdr->ip_dst, ip_dst, INET_ADDRSTRLEN);
+
+        print_all("ipv4", (u_char*) ip4_hdr);
     }
-    // IPV6
+    // IPV6 (ipv6 portion untested because my vm can't run ipv6 apparently - will figure out later)
     else if (ether_type == ETHERTYPE_IPV6) {
         struct ip6_hdr* ip6_header = (struct ip6_hdr*) (packet + sizeof(struct ether_header)); // pointer starts after ether header
         
         ip_header = (u_char*) ip6_header;
-        ip_header_length = sizeof(struct ip6_hdr);
+        ip_header_len = sizeof(struct ip6_hdr);
         protocol = ip6_header->ip6_ctlun.ip6_un1.ip6_un1_nxt;
 
-        char src_str[INET6_ADDRSTRLEN];
-        char dst_str[INET6_ADDRSTRLEN];
+        char ip_src[INET6_ADDRSTRLEN];
+        char ip_dst[INET6_ADDRSTRLEN];
+        inet_ntop(AF_INET6, &ip6_header->ip6_src, ip_src, INET6_ADDRSTRLEN);
+        inet_ntop(AF_INET6, &ip6_header->ip6_dst, ip_dst, INET6_ADDRSTRLEN);
 
-        printf("IPv6 Header:\n");
-        printf("Version: %d\n", (ip6_header->ip6_vfc >> 4) & 0x0F); // Extract Version (top 4 bits)
-        printf("Traffic Class: 0x%02x\n", (ip6_header->ip6_vfc & 0x0F) << 4 | (ip6_header->ip6_flow >> 16)); // Traffic class
-        printf("Flow Label: 0x%05x\n", ip6_header->ip6_flow & 0xFFFFF); // Flow Label (lower 20 bits)
-        printf("Payload Length: %d\n", ntohs(ip6_header->ip6_plen)); // Payload Length (length of the data excluding the header)
-        printf("Next Header: %d\n", ip6_header->ip6_nxt); // Next header field (protocol type for the payload)
-        printf("Hop Limit: %d\n", ip6_header->ip6_hlim); // Hop Limit (TTL in IPv6)
-        printf("Source Address: %s\n", inet_ntop(AF_INET6, &ip6_header->ip6_src, src_str, sizeof(src_str))); // Source IP address (IPv6)
-        printf("Destination Address: %s\n", inet_ntop(AF_INET6, &ip6_header->ip6_dst, dst_str, sizeof(dst_str))); // Destination IP address
+        print_all("ipv6", (u_char*) ip6_header);
     }
 
     printf("\n------------\n");
 
-
     // Resolve TCP/UDP packets 
+    if (protocol != IPPROTO_TCP && protocol != IPPROTO_UDP) {
+
+    }
+
+    if (protocol == IPPROTO_TCP) {
+        struct tcphdr* tcp_header = (struct tcphdr*) (ip_header + ip_header_len);
+
+        metrics->tcp_count++;
+        metrics->tcp_bytes += ntohs(header->len); // full package len (?)
+
+        // get needed vars
+        uint16_t src_port = ntohs(tcp_header->th_sport);
+        uint16_t dst_port = ntohs(tcp_header->th_dport);
+        uint8_t tcp_hdr_len = tcp_header->th_off * 4;
+        int payload_len = ntohs(header->len) - ip_header_len - tcp_hdr_len;
+
+        printf("TCP Packet:\n");
+        printf("Protocol Number: %d\n", protocol);
+        printf("Source Address: %s\n", ip_src);
+        printf("Destination Address: %s\n", ip_dst);
+        printf("Source Port: %d\n", src_port);
+        printf("Destination Port: %d\n", dst_port);
+        printf("Header Length: %d bytes\n", tcp_hdr_len);
+        printf("Payload Length: %d bytes\n", payload_len);
+    }
+    else if (protocol == IPPROTO_UDP) {
+        struct udphdr* udp_header = (struct udphdr*) (ip_header + ip_header_len);
+
+        metrics->udp_count++;
+        metrics->udp_bytes += ntohs(header->len); // full package len (?)
+
+        // Extract UDP details
+        uint16_t src_port = ntohs(udp_header->uh_sport);
+        uint16_t dst_port = ntohs(udp_header->uh_dport);
+        int udp_hdr_len = sizeof(struct udphdr);
+        int payload_len = ntohs(header->len) - ip_header_len - udp_hdr_len;
+
+        printf("UDP Packet:\n");
+        printf("Protocol Number: %d\n", protocol);
+        printf("Source Address: %s\n", ip_src);
+        printf("Destination Address: %s\n", ip_dst);
+        printf("Source Port: %d\n", src_port);
+        printf("Destination Port: %d\n", dst_port);
+        printf("Header Length: %d bytes\n", udp_hdr_len);
+        printf("Payload Length: %d bytes\n", payload_len);
+    }
+
+    printf("\n===============\n");
+
 
     // Flow counters 
 
@@ -96,7 +208,7 @@ int dev_exists(const char* interface) {
     int found = 0;
     
     while (dev != NULL) {
-        // printf("%s\n", dev->name);
+        printf("%s\n", dev->name);
         if (strcmp(dev->name, interface) == 0) {
             found = 1;
             break;
