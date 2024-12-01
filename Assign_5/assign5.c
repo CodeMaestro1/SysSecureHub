@@ -1,4 +1,9 @@
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE
+#endif
+
 #include "assign5.h"
+
 
 
 /* Global Variables */
@@ -13,12 +18,15 @@ FILE *outfile = NULL;
 pcap_t* handle;
 
 
-void check() {
-    int test = 0;
-    printf("checking...\n");
-    scanf("%d", &test);
-}
-
+/**
+ * @brief Finds the index of a network flow in the flows array that matches the given key.
+ *
+ * This function iterates through the global `flows` array and compares each flow's key with the provided key.
+ * If a match is found, the index of the matching flow is returned.
+ *
+ * @param key A pointer to a `flow_t` structure containing the key to search for.
+ * @return The index of the matching flow in the `flows` array, or -1 if no match is found.
+ */
 int find_flow(flow_t *key) {
     for (int i = 0; i < metrics.net_flows; i++) {
         if (strcmp(flows[i].key.ip_src, key->ip_src) == 0 &&
@@ -72,14 +80,26 @@ void INThandler(int sig) {
     if (handle != NULL) {
         pcap_breakloop(handle);
     } else { // no session active -> exit immed
+        printf("\nCaught signal %d. Exiting...\n", sig);
         exit(0);
     }
-
-    // print_flows(); // for debugging
-    
-    // exit(0);
 }
 
+
+/**
+ * @brief Prints the details of various network headers based on the specified type.
+ *
+ * This function takes a type and a header, and prints the details of the header
+ * based on the type. Supported types are "ipv4", "ipv6", "tcp", and "udp".
+ *
+ * @param type A string indicating the type of the header. Supported values are:
+ *             - "ipv4": for IPv4 headers
+ *             - "ipv6": for IPv6 headers
+ *             - "tcp": for TCP headers
+ *             - "udp": for UDP headers
+ * @param header A pointer to the header data to be printed. The data should be
+ *               cast to the appropriate structure based on the type.
+ */
 void print_all(char* type, u_char* header) {
     // ip headers 
     if (strcmp(type, "ipv4") == 0) {
@@ -164,9 +184,6 @@ void print_all(char* type, u_char* header) {
 
 void packet_handler(u_char *user, const struct pcap_pkthdr* header, const u_char* packet)
 {
-    // metrics_t* metrics = (metrics_t*) user;
-
-    // metrics->total_packets++;
 
     metrics.total_packets++;
 
@@ -209,7 +226,6 @@ void packet_handler(u_char *user, const struct pcap_pkthdr* header, const u_char
         inet_ntop(AF_INET, &ip4_hdr->ip_src, ip_src, INET_ADDRSTRLEN);
         inet_ntop(AF_INET, &ip4_hdr->ip_dst, ip_dst, INET_ADDRSTRLEN);
 
-        // print_all("ipv4", (u_char*) ip4_hdr); // debug 
     }
     // IPV6 (ipv6 portion untested because my vm can't run ipv6 apparently - will figure out later)
     else if (ether_type == ETHERTYPE_IPV6) {
@@ -313,7 +329,15 @@ void packet_handler(u_char *user, const struct pcap_pkthdr* header, const u_char
     // Retransmitted packets 
 
 }
-
+/**
+ * @brief Checks if the specified network interface exists in the list of available devices.
+ * 
+ * 
+ * @param interface The name of the network interface to check.
+ * 
+ * @return 1 if the interface exists, 0 otherwise.s
+ * 
+ */
 int dev_exists(const char* interface) {
     pcap_if_t *alldevs;
     char errbuf[PCAP_ERRBUF_SIZE];
@@ -436,6 +460,7 @@ int main(int argc, char *argv[]) {
         outfile = fopen(ONLINE_OUTPUT_FILE, "w");
         if (!outfile) {
             perror("Error opening online output file");
+            fclose(logfile); // close log file if the other file failed to open
             return 1;
         }
 
