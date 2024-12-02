@@ -34,6 +34,7 @@ typedef struct {
     int net_flows;
     int tcp_flows;
     int udp_flows;
+    int retransmitted_tcp_count;
 } metrics_t;
 
 typedef struct {
@@ -42,15 +43,20 @@ typedef struct {
     uint16_t src_port;
     uint16_t dst_port;
     uint8_t protocol;
-} flow_t; //~134bytes (close to md5 hash size - so using it probably makes a small difference in the time of find)
+} flow_t;
 
 typedef struct {
     flow_t key;
+    unsigned int expected_seq;
     int counter; // not needed but yeah
 } flow_entry_t;
 
 
 // Declare functions
+
+int is_tcp_keep_alive(struct tcphdr* tcp_header, unsigned int next_exp_seq, unsigned int packet_len);
+
+int is_tcp_packet_retransmitted(struct tcphdr* tcp_header, flow_entry_t* flow, unsigned int packet_len);
 
 void print_help();
 
@@ -61,7 +67,7 @@ void INThandler(int sig);
 
 int add_flow(flow_t *key);
 
-int find_flow(flow_t *key);
+flow_entry_t* find_flow(flow_t *key);
 
 /* debugging prints global array flows */ 
 void print_flows();

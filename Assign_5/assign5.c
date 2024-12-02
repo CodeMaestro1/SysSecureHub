@@ -8,7 +8,7 @@
 
 /* Global Variables */
 // metrics struct  
-metrics_t metrics = {0, 0, 0, 0, 0, 0, 0, 0}; // could technically go local again, but not worth it 
+metrics_t metrics = {0, 0, 0, 0, 0, 0, 0, 0, 0}; // could technically go local again, but not worth it 
 // flow counter
 flow_entry_t flows[MAX_FLOWS];
 // log files 
@@ -16,6 +16,46 @@ FILE *logfile = NULL;
 FILE *outfile = NULL;
 // session handle
 pcap_t* handle;
+
+int is_tcp_keep_alive(struct tcphdr* tcp_header, unsigned int next_exp_seq, unsigned int packet_len) {
+    /* Set when 
+    - the segment size is zero or one, 
+    - current sequence number is one byte less than the next expected sequence number, 
+    - none of SYN, FIN, or RST are set.
+    */
+
+    unsigned int segment_size = packet_len - sizeof(tcp_header);
+    
+    if ( (segment_size == 0 || segment_size == 1) 
+        && (tcp_header->seq == next_exp_seq - 1)
+        && (!tcp_header->syn && !tcp_header->fin && !tcp_header->rst) )
+    {
+        return 0; // true
+    }
+
+    return 1; // false
+}
+
+int is_tcp_packet_retransmitted(struct tcphdr* tcp_header, flow_entry_t* flow, unsigned int packet_len) {
+    /*
+    - This is not a keepalive packet.
+    - In the forward direction, the segment length is greater than zero or the SYN or FIN flag is set.
+    - The next expected sequence number is greater than the current sequence number. 
+    */
+
+    unsigned int next_exp_seq = flow->expected_seq;
+    unsigned int segment_size = packet_len - sizeof(tcp_header);
+
+    // if it is not a keep alive pckt
+    if ( (is_tcp_keep_alive(tcp_header, next_exp_seq, packet_len) == 1)
+         && (segment_size > 0 || (tcp_header->syn || tcp_header->fin))
+         && (next_exp_seq > tcp_header->th_seq) )
+    {
+        return 0; // true
+    }
+
+    return 1; // false
+}
 
 
 /**
@@ -27,29 +67,30 @@ pcap_t* handle;
  * @param key A pointer to a `flow_t` structure containing the key to search for.
  * @return The index of the matching flow in the `flows` array, or -1 if no match is found.
  */
-int find_flow(flow_t *key) {
+flow_entry_t* find_flow(flow_t *key) {
     for (int i = 0; i < metrics.net_flows; i++) {
         if (strcmp(flows[i].key.ip_src, key->ip_src) == 0 &&
             strcmp(flows[i].key.ip_dst, key->ip_dst) == 0 &&
             flows[i].key.src_port == key->src_port &&
             flows[i].key.dst_port == key->dst_port &&
             flows[i].key.protocol == key->protocol) {
-                return i;
+                return &flows[i];
         }
     }
-    return -1;
+    return NULL;
 }
 
 int add_flow(flow_t *key) {
-    int index = find_flow(key);
-    if (index != -1) {
-        flows[index].counter++;
+    flow_entry_t* cur_flow = find_flow(key);
+    if (cur_flow != NULL) {
+        cur_flow->counter++;
         return 0; // no new flow
     } else {
         // add entry if not found 
         if (metrics.net_flows < MAX_FLOWS) {
             int num = metrics.net_flows;
             flows[num].key = *key;
+            flows[num].expected_seq = 0; // init next expected seq num as 0
             flows[num].counter = 1;
             return 1; // new flow 
         } else {
@@ -263,10 +304,36 @@ void packet_handler(u_char *user, const struct pcap_pkthdr* header, const u_char
         uint8_t tcp_hdr_len = tcp_header->th_off * 4;
         int payload_len = ntohs(header->len) - ip_header_len - tcp_hdr_len;
 
+        // TCP Flows 
+        flow_t key;
+        strcpy(key.ip_src, ip_src);
+        strcpy(key.ip_dst, ip_dst);
+        key.src_port = src_port;
+        key.dst_port = dst_port;
+        key.protocol = protocol;
+
+        if (add_flow(&key) == 1) { // if needed
+            metrics.net_flows++;
+            metrics.tcp_flows++;
+        }
+        flow_entry_t* cur_flow = find_flow(&key);
+
+        // Retransmitted packets 
+        int is_retransmitted = is_tcp_packet_retransmitted(tcp_header, cur_flow, payload_len);
+        if (is_retransmitted == 0) {
+            metrics.retransmitted_tcp_count++; // optional
+        }
+
+        // Update next expected seq number
+        cur_flow->expected_seq = tcp_header->th_seq + payload_len;
+
         FILE* files[] = {stdout, outfile};
         for (int i = 0; i < 2; i++) {
-            fprintf(files[i], "TCP Packet:\n");
-            fprintf(files[i], "Protocol Number: %d\n", protocol);
+            fprintf(files[i], "TCP Packet");
+            if (is_retransmitted == 0) {
+                fprintf(files[i], " (Retransmitted)"); // retransmition
+            }
+            fprintf(files[i], ":\nProtocol Number: %d\n", protocol);
             fprintf(files[i], "Source Address: %s\n", ip_src);
             fprintf(files[i], "Destination Address: %s\n", ip_dst);
             fprintf(files[i], "Source Port: %d\n", src_port);
@@ -304,31 +371,25 @@ void packet_handler(u_char *user, const struct pcap_pkthdr* header, const u_char
 
         }
 
+        // UDP Flows 
+        flow_t key;
+        strcpy(key.ip_src, ip_src);
+        strcpy(key.ip_dst, ip_dst);
+        key.src_port = src_port;
+        key.dst_port = dst_port;
+        key.protocol = protocol;
+
+        if (add_flow(&key) == 1) { // if needed
+            metrics.net_flows++;
+            metrics.udp_flows++;
+        }  
+
         // print_all("udp", (u_char*) udp_header); // debug 
     }
 
-
-    // Flows 
-
-    flow_t key;
-    strcpy(key.ip_src, ip_src);
-    strcpy(key.ip_dst, ip_dst);
-    key.src_port = src_port;
-    key.dst_port = dst_port;
-    key.protocol = protocol;
-
-    if (add_flow(&key) == 1) { // if needed
-        metrics.net_flows++;
-        if (protocol == IPPROTO_TCP) {
-            metrics.tcp_flows++;
-        } else if (protocol == IPPROTO_UDP) {
-            metrics.udp_flows++;
-        }
-    }  
-
-    // Retransmitted packets 
-
 }
+
+
 /**
  * @brief Checks if the specified network interface exists in the list of available devices.
  * 
@@ -480,7 +541,8 @@ int main(int argc, char *argv[]) {
             fprintf(files[i], "Total bytes of UDP packets: %lu\n", metrics.udp_bytes);
             fprintf(files[i], "Total flows: %d\n", metrics.net_flows);
             fprintf(files[i], "Total TCP flows: %d\n", metrics.tcp_flows);
-            fprintf(files[i], "Total UDP flows: %d\n\n\n", metrics.udp_flows);
+            fprintf(files[i], "Total UDP flows: %d\n", metrics.udp_flows);
+            // fprintf(files[i], "Total TCP retransmissions: %d\n\n\n", metrics.retransmitted_tcp_count);
         }
         
         // close session 
@@ -549,7 +611,8 @@ int main(int argc, char *argv[]) {
             fprintf(files[i], "Total bytes of UDP packets: %lu\n", metrics.udp_bytes);
             fprintf(files[i], "Total flows: %d\n", metrics.net_flows);
             fprintf(files[i], "Total TCP flows: %d\n", metrics.tcp_flows);
-            fprintf(files[i], "Total UDP flows: %d\n\n\n", metrics.udp_flows);
+            fprintf(files[i], "Total UDP flows: %d\n", metrics.udp_flows);
+            // fprintf(files[i], "Total TCP retransmissions: %d\n\n\n", metrics.retransmitted_tcp_count);
         }
         
         // close session 

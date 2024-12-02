@@ -43,3 +43,9 @@ https://stackoverflow.com/questions/4217037/catch-ctrl-c-in-c
 
 network flow definitions:
 https://github.com/drnpkr/flowRecorder
+
+is keep-alive packet,
+expected_seq formula,
+conditions for retransmition:
+https://www.wireshark.org/docs/wsug_html_chunked/ChAdvTCPAnalysis.html
+
