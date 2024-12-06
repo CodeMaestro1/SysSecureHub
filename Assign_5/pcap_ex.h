@@ -1,5 +1,5 @@
-#ifndef ASSIGN5_H
-#define ASSIGN5_H
+#ifndef PCAP_EX_H
+#define PCAP_EX_H
 
 #include <stdio.h>
 #include <stdlib.h>

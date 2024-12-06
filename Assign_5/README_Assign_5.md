@@ -42,19 +42,19 @@ The program supports the following arguments:
 1. **Live Capture**:
 
    ```bash
-   ./assign5 -i eth0 -f "port 8080"
+   ./pcap_ex -i eth0 -f "port 8080"
    ```
 
 2. **PCAP File Analysis**:
 
    ```bash
-   ./assign5 -r test.pcap -f "host YYY.YYY.Y.Y"
+   ./pcap_ex -r test.pcap
    ```
 
 To see detailed usage instructions, run:
 
 ```bash
-./assign5 -h
+./pcap_ex -h
 ```
 
 ---
