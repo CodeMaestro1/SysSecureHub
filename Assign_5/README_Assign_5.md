@@ -97,8 +97,7 @@ Based on these characteristics, it is possible to detect retransmissions by chec
 
 In the case of UDP, the lack of implementation of retransmissions is a consequence of the fundamental characteristics of the protocol. As a connectionless protocol, UDP does not guarantee the delivery of packets. Consequently, the concept of retransmission is not applicable within the context of UDP. Nevertheless, in certain instances, applications may implement retransmissions at the application layer with the objective of ensuring the delivery of packets.
 
-**Note:** 
-
+**Note:**
 According to the [Wireshark Q&A](https://osqa-ask.wireshark.org/questions/25609/how-does-wireshark-detect-tcp-retransmissions/), TCP retransmissions are often identified using a timer-based approach. In cases of out-of-order packets, Wireshark tracks the time elapsed since the last packet's expected sequence number and flags a retransmission if the timer expires without receiving the anticipated packet. Due to the complexity of implementing such a timer-based mechanism, this program does not support timer-based detection for retransmissions. Instead, it uses sequence number analysis to identify retransmissions, which may not cover all edge cases such as out-of-order packets.
 
 ---
