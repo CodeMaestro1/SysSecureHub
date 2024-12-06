@@ -24,16 +24,17 @@ int is_tcp_keep_alive(struct tcphdr* tcp_header, unsigned int next_exp_seq, unsi
     - none of SYN, FIN, or RST are set.
     */
 
-    unsigned int segment_size = packet_len - sizeof(tcp_header);
+    
+    unsigned int segment_size = packet_len - sizeof(struct tcphdr);
     
     if ( (segment_size == 0 || segment_size == 1) 
-        && (tcp_header->seq == next_exp_seq - 1)
+        && (tcp_header->th_seq == next_exp_seq - 1)
         && (!tcp_header->syn && !tcp_header->fin && !tcp_header->rst) )
     {
-        return 0; // true
+        return 1; // true
     }
 
-    return 1; // false
+    return 0; // false
 }
 
 int is_tcp_packet_retransmitted(struct tcphdr* tcp_header, flow_entry_t* flow, unsigned int packet_len) {
@@ -44,17 +45,17 @@ int is_tcp_packet_retransmitted(struct tcphdr* tcp_header, flow_entry_t* flow, u
     */
 
     unsigned int next_exp_seq = flow->expected_seq;
-    unsigned int segment_size = packet_len - sizeof(tcp_header);
+    unsigned int segment_size = packet_len - sizeof(struct tcphdr);
 
-    // if it is not a keep alive pckt
-    if ( (is_tcp_keep_alive(tcp_header, next_exp_seq, packet_len) == 1)
+    // if it is not a keep alive packet
+    if ( (is_tcp_keep_alive(tcp_header, next_exp_seq, packet_len) == 0)
          && (segment_size > 0 || (tcp_header->syn || tcp_header->fin))
          && (next_exp_seq > tcp_header->th_seq) )
     {
-        return 0; // true
+        return 1; // true
     }
 
-    return 1; // false
+    return 0; // false
 }
 
 
@@ -204,8 +205,6 @@ void print_all(char* type, u_char* header) {
         if (tcp_hdr->th_flags & TH_PUSH) printf("PUSH ");
         if (tcp_hdr->th_flags & TH_ACK) printf("ACK ");
         if (tcp_hdr->th_flags & TH_URG) printf("URG ");
-        // if (tcp_hdr->th_flags & TH_ECE) printf("ECE "); // these exist in the source, but not on my machine's source code so idk
-        // if (tcp_hdr->th_flags & TH_CWR) printf("CWR ");
         printf("\n");
 
         printf("Window: %u\n", ntohs(tcp_hdr->th_win));
@@ -451,9 +450,17 @@ int main(int argc, char *argv[]) {
     while ((opt = getopt(argc, argv, "i:r:f:h")) != -1) {
         switch (opt) {
             case 'i':
+                if (pcap_file) {
+                    fprintf(stderr, "Cannot use both -i (interface) and -r (pcap file) options simultaneously.\n");
+                    return 1;
+                }
                 interface = optarg;
                 break;
             case 'r':
+                if (interface) {
+                    fprintf(stderr, "Cannot use both -i (interface) and -r (pcap file) options simultaneously.\n");
+                    return 1;
+                }
                 pcap_file = optarg;
                 break;
             case 'f':
@@ -470,7 +477,7 @@ int main(int argc, char *argv[]) {
 
     // error (i and r)
     if (!interface && !pcap_file) {
-        fprintf(stderr, "Error, use -h for help.\n");
+        fprintf(stderr, "Either -i (interface) or -r (pcap file) option must be provided.\n");
         return 1;
     }
 
@@ -542,7 +549,7 @@ int main(int argc, char *argv[]) {
             fprintf(files[i], "Total flows: %d\n", metrics.net_flows);
             fprintf(files[i], "Total TCP flows: %d\n", metrics.tcp_flows);
             fprintf(files[i], "Total UDP flows: %d\n", metrics.udp_flows);
-            // fprintf(files[i], "Total TCP retransmissions: %d\n\n\n", metrics.retransmitted_tcp_count);
+            fprintf(files[i], "Total TCP retransmissions: %d\n\n\n", metrics.retransmitted_tcp_count);
         }
         
         // close session 
@@ -612,7 +619,7 @@ int main(int argc, char *argv[]) {
             fprintf(files[i], "Total flows: %d\n", metrics.net_flows);
             fprintf(files[i], "Total TCP flows: %d\n", metrics.tcp_flows);
             fprintf(files[i], "Total UDP flows: %d\n", metrics.udp_flows);
-            // fprintf(files[i], "Total TCP retransmissions: %d\n\n\n", metrics.retransmitted_tcp_count);
+            fprintf(files[i], "Total TCP retransmissions: %d\n\n\n", metrics.retransmitted_tcp_count);
         }
         
         // close session 
