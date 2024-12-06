@@ -11,7 +11,7 @@ This project implements a custom network sniffer capable of analyzing TCP and UD
 - **Live Capture**: Captures real-time packets on a specified network interface.
 - **File Analysis**: Reads and analyzes packets from PCAP files.
 - **Custom Filtering**: Users can apply filter expressions to focus on specific traffic (e.g., port numbers or IP addresses).
-- **TCP Retransmission Detection**: Detects retransmissions based on sequence numbers.
+- **TCP Retransmission Detection**: Detects retransmissions based on sequence numbers and segment sizes.
 
 ---
 
@@ -59,7 +59,27 @@ To see detailed usage instructions, run:
 
 ---
 
-## implementation
+### Implementation Details
+
+1. **Global Variables**:
+   - `metrics_t`: Tracks statistics like packet counts and retransmissions.
+   - `flows`: An array to store active network flows with a maximum limit (`MAX_FLOWS`).
+
+2. **TCP/UDP Analysis**:
+   - Functions like `is_tcp_packet_retransmitted` and `is_tcp_keep_alive` evaluate packet behavior and flow consistency.
+   - Each TCP flow maintains the next expected sequence number to detect retransmissions.
+
+3. **Flow Management**:
+   - `find_flow`: Searches the flow array for a matching flow.
+   - `add_flow`: Adds a new flow or increments the packet counter for an existing one.
+
+4. **Packet Processing**:
+   - `packet_handler`: Main logic for processing captured packets, including protocol parsing and flow updates.
+   - `print_all`: Prints detailed header information for debugging or logging.
+
+5. **Signal Handling**:
+   - `INThandler`: Stops the packet capture session on receiving a signal like `Ctrl+C`.
+
 
 
 ## Retransmission Detection
@@ -76,6 +96,10 @@ Based on these characteristics, it is possible to detect retransmissions by chec
 ### UDP Retransmission Detection
 
 In the case of UDP, the lack of implementation of retransmissions is a consequence of the fundamental characteristics of the protocol. As a connectionless protocol, UDP does not guarantee the delivery of packets. Consequently, the concept of retransmission is not applicable within the context of UDP. Nevertheless, in certain instances, applications may implement retransmissions at the application layer with the objective of ensuring the delivery of packets.
+
+**Note:** 
+
+According to the [Wireshark Q&A](https://osqa-ask.wireshark.org/questions/25609/how-does-wireshark-detect-tcp-retransmissions/), TCP retransmissions are often identified using a timer-based approach. In cases of out-of-order packets, Wireshark tracks the time elapsed since the last packet's expected sequence number and flags a retransmission if the timer expires without receiving the anticipated packet. Due to the complexity of implementing such a timer-based mechanism, this program does not support timer-based detection for retransmissions. Instead, it uses sequence number analysis to identify retransmissions, which may not cover all edge cases such as out-of-order packets.
 
 ---
 
