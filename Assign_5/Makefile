@@ -1,7 +1,7 @@
-all: assign5
+all: pcap_ex
 
-assign5: assign5.c assign5.h
-	gcc assign5.c -o assign5 -lpcap
+pcap_ex: pcap_ex.c pcap_ex.h
+	gcc pcap_ex.c -o pcap_ex -lpcap
 
 clean:
-	rm -rf assign5 assign5.o
+	rm -rf pcap_ex pcap_ex.o
