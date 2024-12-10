@@ -9,6 +9,10 @@ declare ipv4Array #Declare an array to store the IPv4 addresses of the domains.
 declare ipv6Array #Declare an array to store the IPv6 addresses of the domains.
 
 
+# Define file names for IPv4 and IPv6 addresses
+    ipv4Temp="ipv4_addresses.txt"
+    ipv6Temp="ipv6_addresses.txt"
+
 
 #This function is responsible for reading the configuration files and storing them in a associative array.
 function readConfigFile(){
@@ -33,24 +37,40 @@ function domainToIP(){
         #Use tail command to remove the first 5 lines of the output.
         #Use grep command to extract the IP addresses from the output.
 
-        ipv4Temp=$(mktemp)
-        ipv6Temp=$(mktemp) #We are forced to use temporary files because it is possible a domain to have multiple IPv4 and IPv6 addresses.
 
-        host -t A -R 3 "$domain" 1.1.1.1 | tail -n +6 | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' >> "$ipv4Temp"&
 
-        host -t AAAA -R 3 "$domain" 1.1.1.1 | tail -n +6 | grep -Eo '([a-fA-F0-9]{0,4}:){1,7}[a-fA-F0-9]{0,4}'  >> "$ipv6Temp"&
+        #ipv4Temp=$(mktemp) ||  echo "Error: Failed to create temporary file for IPv4"
+        #ipv6Temp=$(mktemp) #We are forced to use temporary files because it is possible a domain to have multiple IPv4 and IPv6 addresses.
 
-        wait
+        #rm -f "$ipv4Temp" "$ipv6Temp"
 
+        host -t A -R 3 "$domain" 1.1.1.1 |\
+        tail -n +6 | \
+        grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | \
+        awk '{print $0}' >> "$ipv4Temp"& 
+
+        pid_ipv4=$!
+
+        host -t AAAA -R 3 "$domain" 1.1.1.1 | \
+        tail -n +6 | \
+        grep -Eo '([a-fA-F0-9]{0,4}:){1,7}[a-fA-F0-9]{0,4}' | \
+        awk '{print $0}' >> "$ipv6Temp"&
+
+        pid_ipv6=$!
+
+        wait "$pid_ipv4"
+        wait "$pid_ipv6"
+
+        
+
+    done
         mapfile -t ipv4Array < "$ipv4Temp"
         #echo "IPv4 addresses:" "${ipv4Array[@]}"
 
         mapfile -t ipv6Array < "$ipv6Temp"
 
-        rm "$ipv4Temp" "$ipv6Temp"
-
-    done
-}
+        #rm -f "$ipv4Temp" "$ipv6Temp"
+    }       
 
 
 function firewall() {
@@ -61,12 +81,14 @@ function firewall() {
     fi
     if [ "$1" = "-config"  ]; then
         # Configure adblock rules based on domain names and IPs of $config file.
+        rm -f "$ipv4Temp" "$ipv6Temp" #Remove the temporary files if they exist.
         readConfigFile
         domainToIP
         printf "Configuring firewall rules...\n"
 
-        echo "IPv4 addresses:" "${ipv4Array[@]}"
-        echo "IPv6 addresses:" "${ipv6Array[@]}"
+        #Used for debugging purposes.
+        #echo "IPv4 addresses:" "${ipv4Array[@]}"
+        #echo "IPv6 addresses:" "${ipv6Array[@]}"
 
         # Apply firewall rules for IPv4 addresses
         for ip in "${ipv4Array[@]}"; do
@@ -75,7 +97,7 @@ function firewall() {
 
         # Apply firewall rules for IPv6 addresses
         for ip in "${ipv6Array[@]}"; do
-            ip6tables -A INPUT -s "$ip" -j DROP
+            ip6tables -A INPUT -s "[$ip]" -j DROP
         done
 
         true
@@ -96,11 +118,13 @@ function firewall() {
 
         
     elif [ "$1" = "-reset"  ]; then
-        # Reset IPv4/IPv6 rules to default settings (i.e. accept all).
-        iptables -F
-		iptables -P INPUT ACCEPT
-		iptables -P FORWARD ACCEPT
-		iptables -P OUTPUT ACCEPT
+    # Reset IPv4/IPv6 rules to default settings (i.e. accept all).
+        for cmd in iptables ip6tables; do
+            $cmd -F
+            $cmd -P INPUT ACCEPT
+            $cmd -P FORWARD ACCEPT
+            $cmd -P OUTPUT ACCEPT
+        done
         true
 
         
