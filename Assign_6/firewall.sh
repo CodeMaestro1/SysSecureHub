@@ -45,8 +45,6 @@ function domainToIP(){
         #Use tail command to remove the first 5 lines of the output.
         #Use grep command to extract the IP addresses from the output.
 
-        #rm -f "$ipv4Temp" "$ipv6Temp"
-
         host -t A -R 3 "$domain" 1.1.1.1 |\
         tail -n +6 | \
         grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' >> "$ipv4Temp"& 
@@ -69,6 +67,8 @@ function domainToIP(){
 
         mapfile -t ipv6Array < "$ipv6Temp"
 
+        #Remove the temporary files.
+        #Comment the following line if you want to keep the temporary files.
         rm -f "$ipv4Temp" "$ipv6Temp"
     }       
 
@@ -106,8 +106,12 @@ function firewall() {
     elif [ "$1" = "-save"  ]; then
         # Save rules to $rulesV4/$rulesV6 files.
 
-        iptables-save -f "$rulesV4"
+        #First, clear the rules in the files.
+        truncate -s 0 "$rulesV4"
+        truncate -s 0 "$rulesV6"
 
+        #Now, save the rules to the files.
+        iptables-save -f "$rulesV4"
         ip6tables-save -f "$rulesV6"
 
         true
