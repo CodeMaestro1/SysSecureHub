@@ -7,6 +7,10 @@ rulesV6="rulesV6"
 declare configArray #Declare an array to store the domains from the config file.
 declare ipv4Array #Declare an array to store the IPv4 addresses of the domains.
 declare ipv6Array #Declare an array to store the IPv6 addresses of the domains.
+declare ipv4FileProcess #Declare an array to store any IpV4 addresses contained in the config file.
+declare ipv6FileProcess #Declare an array to store any IpV6 addresses contained in the config file.
+declare ipv4Total #Declare an array to store the total IPv4 addresses.
+declare ipv6Total #Declare an array to store the total IPv6 addresses.
 
 
 # Define file names for IPv4 and IPv6 addresses
@@ -31,6 +35,13 @@ function readConfigFile(){
     #Read the configuration file and store the domain names in the configArray.
     #Remove any trailing white spaces from the domain names.
     #Preferebly use the mapfile command to read the file.while loop will be slower.
+
+        mapfile -t ipv4FileProcess < <(grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' "$config")
+        mapfile -t ipv6FileProcess < <(grep -Eo '(([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4})' "$config")
+
+        #Remove the IP addresses from the config file to avoid invalid entries in the iptables.
+        sed -i '/\([[:digit:]]\{1,3\}\.\)\{3\}[[:digit:]]\{1,3\}/d' "$config"
+        sed -i '/\(\([[:xdigit:]]\{1,4\}:\)\{1,7\}[[:xdigit:]]\{1,4\}\|::\|([[:xdigit:]]\{1,4\}:)\{1,6\}:\|([[:xdigit:]]\{1,4\}:)\{1,5\}(:[[:xdigit:]]\{1,4\})\{1,2\}\)/d' "$config"
         mapfile -t configArray < "$config"
     fi
 }
@@ -44,8 +55,9 @@ function domainToIP(){
         #Use Cloudflare's DNS server (1.1.1.1) for fast and quick response.
         #Use tail command to remove the first 5 lines of the output.
         #Use grep command to extract the IP addresses from the output.
+        #If an error occurs, redirect it to /dev/null.
 
-        host -t A -R 3 "$domain" 1.1.1.1 |\
+        host -t A -R 3 "$domain" 1.1.1.1 2>/dev/null |\
         tail -n +6 | \
         grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' >> "$ipv4Temp"& 
 
@@ -67,9 +79,14 @@ function domainToIP(){
 
         mapfile -t ipv6Array < "$ipv6Temp"
 
+        #Merge the arrays.
+        ipv4Total+=("${ipv4Array[@]}" "${ipv4FileProcess[@]}")
+
+        ipv6Total+=("${ipv6Array[@]}" "${ipv6FileProcess[@]}")
+
         #Remove the temporary files.
         #Comment the following line if you want to keep the temporary files.
-        rm -f "$ipv4Temp" "$ipv6Temp"
+        rm -f "$ipv4Temp" "$ipv6Temp" #Perhaps, it will be more effient to use trap 'rm -f "$ipv4Temp" "$ipv6Temp"' EXIT to remove the temporary files when the script exits.
     }       
 
 
@@ -92,12 +109,12 @@ function firewall() {
         #echo "IPv6 addresses:" "${ipv6Array[@]}"
 
         # Apply firewall rules for IPv4 addresses
-        for ip in "${ipv4Array[@]}"; do
+        for ip in "${ipv4Total[@]}"; do
             iptables -A INPUT -s "$ip" -j DROP
         done
 
         # Apply firewall rules for IPv6 addresses
-        for ip in "${ipv6Array[@]}"; do
+        for ip in "${ipv6Total[@]}"; do
             ip6tables -A INPUT -s "$ip" -j DROP
         done
 

@@ -4,7 +4,7 @@ This project implements a custom firewall capable of filtering incoming packets 
 
 ---
 
-## ⚙️ **Available Options**
+## **Available Options**
 
 | **Option**  | **Description**  |
 |-------------|------------------|
@@ -42,11 +42,15 @@ sudo ./firewall.sh [OPTION]
 
 ## 📋 **Implementation Details**
 
-### **Domain-to-IP Resolution**
+The program begins by verifying if the user has root privileges. If not, it displays an error message and terminates the execution. It then processes the command-line arguments and executes the corresponding actions based on the user's selection.
 
-To resolve domain names to IP addresses, the script uses the `host` command. The resolved IP addresses are stored in arrays and processed by `ipv4Temp` and `ipv6Temp`, which are temporary files used to facilitate the process.
+The script filters the configuration file to identify any existing IP addresses (both IPv4 and IPv6) and stores them in separate arrays. These IPs are later used to define firewall rules. Following this, the script converts domain names specified in the configuration file into their respective IP addresses and adds them to the appropriate arrays (IPv4 or IPv6).
 
-The script iterates over the IP addresses and adds them to the firewall rules using `iptables` and `ip6tables` commands. Due to the limited support for IPv6 and the goal of maintaining simplicity, a warning/error message is displayed when the user attempts to run the script with domain names that do not have an associated IPv6 address.
+Once the IPs are collected, the program applies all the discovered addresses as firewall rules. It then saves these rules to the appropriate files for persistence. Additionally, the user has the option to delete any IPs that were initially detected in the configuration file.
+
+To ensure a clean output and avoid confusion, stderr is redirected to /dev/null, suppressing potential error messages. This decision is justified by the relatively low adoption rate of the IPv6 protocol, minimizing the impact of missing or unresolvable IPv6 addresses.
+
+**Note** that the if the configuration file contains IP addresses, the script will collect them and remove them from the configuration file. This is done to prevent false entries in the firewall rules.
 
 ---
 
@@ -63,9 +67,16 @@ The script iterates over the IP addresses and adds them to the firewall rules us
 
 ---
 
+## Blocking effect of the firewall
+
+Upon visiting our favorite website, we can observe that most ads have disappeared. This is because the firewall has successfully blocked the IP addresses associated with ad servers. However, some ads may still be displayed if their corresponding IP addresses were not included in the configuration file and, as a result, were not blocked by the firewall.
+
+---
+
 ## 🔗 **References**
 
 - [Regular expressions in grep ( regex ) with examples](https://www.cyberciti.biz/faq/grep-regular-expressions/)
 - [How to Run Bash Commands in Parallel](https://linuxsimply.com/bash-scripting-tutorial/basics/executing/run-commands-in-parallel/)
 - [https://www.geeksforgeeks.org/mapfile-command-in-linux-with-examples/](https://www.geeksforgeeks.org/mapfile-command-in-linux-with-examples/)
 - [iptables-save command in Linux with examples](https://www.geeksforgeeks.org/iptables-save-command-in-linux-with-examples/)
+- [How to concatenate arrays in bash?](https://stackoverflow.com/questions/31143874/how-to-concatenate-arrays-in-bash)
