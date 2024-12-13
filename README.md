@@ -17,6 +17,10 @@ We have implemented the following assignments:
    - A real-time **malware detection system** capable of identifying security threats as they occur.  
 4. **Assignment 4**:
    - A comprehensive **security analysis** of a web application, including vulnerability identification and exploitation.
+5. **Assignment 5**:
+   - Implementation of a **packet sniffer** capable of capturing and analyzing network traffic, including both TCP and UDP packets, in real-time or from offline packet capture files.
+6. **Assignment 6**:
+   - Development of a custom **firewall** capable of filtering incoming packets based on user-defined rules.
 
 ## Getting Started
 
