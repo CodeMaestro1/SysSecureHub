@@ -109,12 +109,12 @@ function firewall() {
 
         # Apply firewall rules for IPv4 addresses
         for ip in "${ipv4Total[@]}"; do
-            iptables -A INPUT -s "$ip" -j DROP
+            iptables -A INPUT -s "$ip" -j REJECT 2>/dev/null
         done
 
         # Apply firewall rules for IPv6 addresses
         for ip in "${ipv6Total[@]}"; do
-            ip6tables -A INPUT -s "$ip" -j DROP 2>/dev/null
+            ip6tables -A INPUT -s "$ip" -j REJECT 2>/dev/null
         done
 
         true
