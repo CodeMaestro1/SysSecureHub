@@ -1,7 +1,0 @@
-https://www.cyberciti.biz/faq/grep-regular-expressions/
-
-https://linuxsimply.com/bash-scripting-tutorial/basics/executing/run-commands-in-parallel/
-
-https://www.geeksforgeeks.org/mapfile-command-in-linux-with-examples/
-
-https://www.geeksforgeeks.org/iptables-save-command-in-linux-with-examples/
