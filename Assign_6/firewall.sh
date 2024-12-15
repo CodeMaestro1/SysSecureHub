@@ -55,9 +55,8 @@ function domainToIP(){
         #Use Cloudflare's DNS server (1.1.1.1) for fast and quick response.
         #Use tail command to remove the first 5 lines of the output.
         #Use grep command to extract the IP addresses from the output.
-        #If an error occurs, redirect it to /dev/null.
 
-        host -t A -R 3 "$domain" 1.1.1.1 2>/dev/null |\
+        host -t A -R 3 "$domain" 1.1.1.1 |\
         tail -n +6 | \
         grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' >> "$ipv4Temp"& 
 
@@ -115,7 +114,7 @@ function firewall() {
 
         # Apply firewall rules for IPv6 addresses
         for ip in "${ipv6Total[@]}"; do
-            ip6tables -A INPUT -s "$ip" -j DROP
+            ip6tables -A INPUT -s "$ip" -j DROP 2>/dev/null
         done
 
         true

@@ -50,7 +50,10 @@ Once the IPs are collected, the program applies all the discovered addresses as 
 
 To ensure a clean output and avoid confusion, stderr is redirected to /dev/null, suppressing potential error messages. This decision is justified by the relatively low adoption rate of the IPv6 protocol, minimizing the impact of missing or unresolvable IPv6 addresses.
 
-**Note** that the if the configuration file contains IP addresses, the script will collect them and remove them from the configuration file. This is done to prevent false entries in the firewall rules.
+**Notes**  
+
+- If the configuration file contains IP addresses, the script will extract and remove them to prevent false entries in the firewall rules.  
+- When configuring the firewall with a new configuration file, the script does not automatically remove existing rules. To apply the new rules, the user must first manually reset the firewall using the `-reset` option.  
 
 ---
 
