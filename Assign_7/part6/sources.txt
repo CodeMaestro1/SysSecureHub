@@ -4,6 +4,6 @@ https://www.crowdstrike.com/en-us/cybersecurity-101/threat-intelligence/snort-ru
 
 2.
 
-https://corelight.com/resources/glossary/signature-based-detection?utm_source=chatgpt.com#limitations
+https://corelight.com/resources/glossary/signature-based-detection?#limitations
 
-https://generalintlgroup.com/en/blog/advantages-and-disadvantages-of-intrusion-detection-system-ids-types?utm_source=chatgpt.com
+https://generalintlgroup.com/en/blog/advantages-and-disadvantages-of-intrusion-detection-system-ids-types?
