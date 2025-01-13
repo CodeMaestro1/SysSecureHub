@@ -7,3 +7,6 @@ https://www.crowdstrike.com/en-us/cybersecurity-101/threat-intelligence/snort-ru
 https://corelight.com/resources/glossary/signature-based-detection?#limitations
 
 https://generalintlgroup.com/en/blog/advantages-and-disadvantages-of-intrusion-detection-system-ids-types?
+
+
+https://seclists.org/snort/2003/q1/871
