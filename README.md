@@ -21,6 +21,10 @@ We have implemented the following assignments:
    - Implementation of a **packet sniffer** capable of capturing and analyzing network traffic, including both TCP and UDP packets, in real-time or from offline packet capture files.
 6. **Assignment 6**:
    - Development of a custom **firewall** capable of filtering incoming packets based on user-defined rules.
+7. **Assignment 7**:
+   - Implementation of snort rules for **intrusion detection** and **prevention**.
+8. **Assignment 8**(on progress):
+   - Exploit development for **buffer overflow** vulnerabilities.
 
 ## Getting Started
 
