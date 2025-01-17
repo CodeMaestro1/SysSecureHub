@@ -1,8 +1,5 @@
 # SysSecureHub
 
-🚧 Under Development 🚧
-This project is a work in progress and is actively being developed. Expect changes and improvements in future updates.
-
 Welcome to *SysSecureHub*! This repository contains projects developed for the **" Security of Systems and Services"** course at the Technical University of Crete. Each folder corresponds to a different assignment, showcasing various aspects of security. All assignments are standalone and can be run independently.
 
 ## Assignments Overview
@@ -23,7 +20,7 @@ We have implemented the following assignments:
    - Development of a custom **firewall** capable of filtering incoming packets based on user-defined rules.
 7. **Assignment 7**:
    - Implementation of snort rules for **intrusion detection** and **prevention**.
-8. **Assignment 8**(on progress):
+8. **Assignment 8**:
    - Exploit development for **buffer overflow** vulnerabilities.
 
 ## Getting Started
